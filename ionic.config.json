@@ -1,0 +1,7 @@
+{
+  "name": "rick-app",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular-standalone"
+}
