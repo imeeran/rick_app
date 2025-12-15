@@ -1,0 +1,235 @@
+<ion-content [fullscreen]="true">
+
+  <div class="segment-wrapper">
+    <ion-segment [value]="selectedSegment()" (ionChange)="segmentChanged($event)" class="custom-segment">
+      <ion-segment-button value="personal">
+        <ion-icon name="person-outline"></ion-icon>
+        <ion-label>Personal</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="professional">
+        <ion-icon name="briefcase-outline"></ion-icon>
+        <ion-label>Professional</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="payslip">
+        <ion-icon name="document-text-outline"></ion-icon>
+        <ion-label>Payslip</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="theme">
+        <ion-icon name="color-palette-outline"></ion-icon>
+        <ion-label>Theme</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+  </div>
+
+  <div class="segment-content">
+    @switch (selectedSegment()) {
+      @case ('personal') {
+        <div class="segment-panel">
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>Personal Information</ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              @if (driver()) {
+                <ion-item lines="none">
+                  <ion-label>
+                    <h2>Full Name</h2>
+                    <p>{{ driver()?.name || 'N/A' }}</p>
+                  </ion-label>
+                </ion-item>
+                <ion-item lines="none">
+                  <ion-label>
+                    <h2>Mobile</h2>
+                    <p>{{ driver()?.mobile || 'N/A' }}</p>
+                  </ion-label>
+                </ion-item>
+                <ion-item lines="none">
+                  <ion-label>
+                    <h2>EID Number</h2>
+                    <p>{{ driver()?.eid_no || 'N/A' }}</p>
+                  </ion-label>
+                </ion-item>
+                <ion-item lines="none">
+                  <ion-label>
+                    <h2>Visa Expiry</h2>
+                    <p>{{ formatDate(driver()?.visa_expiry || '') }}</p>
+                  </ion-label>
+                </ion-item>
+                <ion-item lines="none">
+                  <ion-label>
+                    <h2>Passport Number</h2>
+                    <p>{{ driver()?.passport_no || 'N/A' }}</p>
+                  </ion-label>
+                </ion-item>
+                <ion-item lines="none">
+                  <ion-label>
+                    <h2>Passport Expiry</h2>
+                    <p>{{ formatDate(driver()?.passport_expiry || '') }}</p>
+                  </ion-label>
+                </ion-item>
+                <ion-item lines="none">
+                  <ion-label>
+                    <h2>Daman Expiry</h2>
+                    <p>{{ formatDate(driver()?.daman_expiry || '') }}</p>
+                  </ion-label>
+                </ion-item>
+              } @else {
+                <ion-item lines="none">
+                  <ion-label>
+                    <p>Loading driver information...</p>
+                  </ion-label>
+                </ion-item>
+              }
+            </ion-card-content>
+          </ion-card>
+          
+          <!-- Logout Button -->
+          <div class="logout-container">
+            <ion-card class="logout-card">
+              <ion-card-content>
+                <ion-button 
+                  expand="block" 
+                  class="logout-button" 
+                  (click)="onLogout()"
+                  [style.--button-background]="getCurrentThemePrimaryColor()"
+                  [style.--button-text-color]="getLogoutButtonTextColor()">
+                  <ion-icon slot="start" name="log-out-outline"></ion-icon>
+                  <span>Logout</span>
+                </ion-button>
+              </ion-card-content>
+            </ion-card>
+          </div>
+        </div>
+      }
+      @case ('professional') {
+        <div class="segment-panel">
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>Professional Information</ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              @if (driver()) {
+                <ion-item lines="none">
+                  <ion-label>
+                    <h2>Rick ID</h2>
+                    <p>{{ driver()?.rick || 'N/A' }}</p>
+                  </ion-label>
+                </ion-item>
+                <ion-item lines="none">
+                  <ion-label>
+                    <h2>Category</h2>
+                    <p>{{ driver()?.category || 'N/A' }}</p>
+                  </ion-label>
+                </ion-item>
+                <ion-item lines="none">
+                  <ion-label>
+                    <h2>Driving Licence Number</h2>
+                    <p>{{ driver()?.driving_licence_no || 'N/A' }}</p>
+                  </ion-label>
+                </ion-item>
+                <ion-item lines="none">
+                  <ion-label>
+                    <h2>Driving Licence Expiry</h2>
+                    <p>{{ formatDate(driver()?.driving_licence_expiry || '') }}</p>
+                  </ion-label>
+                </ion-item>
+                <ion-item lines="none">
+                  <ion-label>
+                    <h2>Traffic Code</h2>
+                    <p>{{ driver()?.trafic_code || 'N/A' }}</p>
+                  </ion-label>
+                </ion-item>
+                <ion-item lines="none">
+                  <ion-label>
+                    <h2>Transaction Number</h2>
+                    <p>{{ driver()?.trans_no || 'N/A' }}</p>
+                  </ion-label>
+                </ion-item>
+                <ion-item lines="none">
+                  <ion-label>
+                    <h2>Limo Permit Expiry</h2>
+                    <p>{{ formatDate(driver()?.limo_permit_expiry || '') }}</p>
+                  </ion-label>
+                </ion-item>
+                <ion-item lines="none">
+                  <ion-label>
+                    <h2>Status</h2>
+                    <p>{{ driver()?.status || 'N/A' }}</p>
+                  </ion-label>
+                </ion-item>
+              } @else {
+                <ion-item lines="none">
+                  <ion-label>
+                    <p>Loading driver information...</p>
+                  </ion-label>
+                </ion-item>
+              }
+            </ion-card-content>
+          </ion-card>
+        </div>
+      }
+      @case ('payslip') {
+        <div class="segment-panel">
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>Payslip</ion-card-title>
+              <ion-card-subtitle>Recent payslips</ion-card-subtitle>
+            </ion-card-header>
+            <ion-card-content>
+              @for (payslip of payslips; track payslip.month) {
+                <ion-item button lines="none">
+                  <ion-icon name="document-text" slot="start"></ion-icon>
+                  <ion-label>
+                    <h2>{{ payslip.month }}</h2>
+                    <p>Gross: {{ payslip.gross }}</p>
+                  </ion-label>
+                  <ion-icon name="chevron-forward" slot="end"></ion-icon>
+                </ion-item>
+              }
+            </ion-card-content>
+          </ion-card>
+        </div>
+      }
+      @case ('theme') {
+        <div class="segment-panel">
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>Theme Selection</ion-card-title>
+              <ion-card-subtitle>Choose your preferred color theme</ion-card-subtitle>
+            </ion-card-header>
+            <ion-card-content>
+              <div class="theme-mode-toggle">
+                <ion-segment [value]="themeMode()" (ionChange)="onThemeModeChange($event)">
+                  <ion-segment-button value="light">
+                    <ion-icon name="sunny-outline"></ion-icon>
+                    <ion-label>Light</ion-label>
+                  </ion-segment-button>
+                  <ion-segment-button value="dark">
+                    <ion-icon name="moon-outline"></ion-icon>
+                    <ion-label>Dark</ion-label>
+                  </ion-segment-button>
+                </ion-segment>
+              </div>
+              <div class="theme-grid">
+                @for (theme of filteredThemes; track theme.name) {
+                  <div 
+                    class="theme-circle" 
+                    [class.selected]="currentTheme() === theme.name"
+                    (click)="selectTheme(theme.name)">
+                    <div class="color-circle">
+                      <div class="color-primary" [style.background-color]="theme.primary"></div>
+                      <div class="color-secondary" [style.background-color]="theme.secondary"></div>
+                      <div class="color-tertiary" [style.background-color]="theme.tertiary"></div>
+                    </div>
+                    <ion-label class="theme-name">{{ theme.displayName }}</ion-label>
+                  </div>
+                }
+              </div>
+            </ion-card-content>
+          </ion-card>
+        </div>
+      }
+    }
+  </div>
+</ion-content>
+

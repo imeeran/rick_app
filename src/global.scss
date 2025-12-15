@@ -35,3 +35,264 @@
 /* @import "@ionic/angular/css/palettes/dark.always.css"; */
 /* @import "@ionic/angular/css/palettes/dark.class.css"; */
 @import '@ionic/angular/css/palettes/dark.system.css';
+
+/* Platform-specific font families */
+:root {
+  --ion-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+}
+
+.platform-ios {
+  --ion-font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
+}
+
+.platform-android {
+  --ion-font-family: 'Roboto', 'Noto Sans', 'Helvetica Neue', Arial, sans-serif;
+}
+
+// /* Global Background Styling */
+// body {
+//   background-color: var(--ion-background-color);
+//   color: var(--ion-text-color);
+//   transition: background-color 0.3s ease, color 0.3s ease;
+//   font-family: var(--ion-font-family);
+//   /* Safe area insets for iOS */
+//   padding-top: env(safe-area-inset-top);
+//   padding-bottom: env(safe-area-inset-bottom);
+//   padding-left: env(safe-area-inset-left);
+//   padding-right: env(safe-area-inset-right);
+// }
+
+// ion-content {
+//   --background: var(--ion-background-color);
+//   --color: var(--ion-text-color);
+//   background-color: var(--ion-background-color);
+//   transition: background-color 0.3s ease;
+//   /* Safe area padding for iOS */
+//   --padding-top: env(safe-area-inset-top);
+//   --padding-bottom: env(safe-area-inset-bottom);
+//   --padding-start: env(safe-area-inset-left);
+//   --padding-end: env(safe-area-inset-right);
+// }
+
+// body.dark ion-content {
+//   --background: var(--ion-background-color);
+//   --color: var(--ion-text-color);
+//   background-color: var(--ion-background-color);
+// }
+
+// /* Text Color Styling - Apply to all text elements */
+// h1, h2, h3, h4, h5, h6, p, span, div, label, a, button {
+//   color: var(--ion-text-color);
+// }
+
+// ion-label {
+//   --color: var(--ion-text-color);
+//   color: var(--ion-text-color);
+  
+//   h1, h2, h3, h4, h5, h6, p {
+//     color: var(--ion-text-color);
+//   }
+// }
+
+// ion-title {
+//   --color: var(--ion-text-color);
+//   color: var(--ion-text-color);
+// }
+
+// ion-card-title {
+//   color: var(--ion-text-color);
+// }
+
+// ion-card-subtitle {
+//   color: var(--ion-text-color);
+//   opacity: 0.7;
+// }
+
+// ion-item {
+//   --background: var(--ion-card-background, #FFFFFF);
+//   --color: var(--ion-text-color);
+//   --inner-border-width: 0;
+//   --min-height: 44px; /* iOS minimum touch target */
+//   transition: background-color 0.3s ease;
+  
+//   /* Android minimum touch target (48dp = 48px at 1x) */
+//   .platform-android & {
+//     --min-height: 48px;
+//   }
+  
+//   ion-label {
+//     color: var(--ion-text-color);
+    
+//     h2, p {
+//       color: var(--ion-text-color);
+//     }
+//   }
+// }
+
+// body.dark ion-item {
+//   --background: var(--ion-card-background);
+//   --color: var(--ion-text-color);
+//   --inner-border-width: 0;
+// }
+
+// /* Card Styling */
+// ion-card {
+//   --background: var(--ion-card-background, #FFFFFF);
+//   --color: var(--ion-text-color);
+//   box-shadow: 0 2px 8px var(--ion-shadow-color-light, rgba(0, 0, 0, 0.1));
+//   border: 1px solid var(--ion-border-color, rgba(0, 0, 0, 0.1));
+//   transition: background-color 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+// }
+
+// body.dark ion-card {
+//   --background: var(--ion-card-background);
+//   --color: var(--ion-text-color);
+//   box-shadow: 0 2px 8px var(--ion-shadow-color-light, rgba(0, 0, 0, 0.3));
+//   border: 1px solid var(--ion-border-color, rgba(255, 255, 255, 0.1));
+// }
+
+// /* Tab Bar Styling */
+// ion-tab-bar {
+//   --background: var(--ion-tab-bar-background, #FFFFFF);
+//   --color: var(--ion-tab-bar-color, #92949c);
+//   --color-selected: var(--ion-tab-bar-color-selected, var(--ion-color-primary));
+//   box-shadow: 0 -2px 8px var(--ion-shadow-color-light, rgba(0, 0, 0, 0.1));
+//   border-top: 1px solid var(--ion-border-color, rgba(0, 0, 0, 0.1));
+//   /* Safe area padding for iOS home indicator */
+//   padding-bottom: calc(env(safe-area-inset-bottom) + 0px);
+// }
+
+// .platform-ios ion-tab-bar {
+//   padding-bottom: calc(env(safe-area-inset-bottom) + 8px);
+// }
+
+// .platform-android ion-tab-bar {
+//   padding-bottom: 8px;
+// }
+
+// body.dark ion-tab-bar {
+//   --background: var(--ion-tab-bar-background, #1A1A1A);
+//   --color: var(--ion-tab-bar-color, #92949c);
+//   --color-selected: var(--ion-tab-bar-color-selected, var(--ion-color-primary));
+//   box-shadow: 0 -2px 8px var(--ion-shadow-color-light, rgba(0, 0, 0, 0.3));
+//   border-top: 1px solid var(--ion-border-color, rgba(255, 255, 255, 0.1));
+// }
+
+// /* Toolbar Styling */
+// ion-toolbar {
+//   --background: var(--ion-card-background, #FFFFFF);
+//   --color: var(--ion-text-color);
+//   border-bottom: 1px solid var(--ion-border-color, rgba(0, 0, 0, 0.1));
+// }
+
+// body.dark ion-toolbar {
+//   --background: var(--ion-card-background, #2A2A2A);
+//   --color: var(--ion-text-color);
+//   border-bottom: 1px solid var(--ion-border-color, rgba(255, 255, 255, 0.1));
+// }
+
+// /* Button Styling - Platform-specific touch targets */
+// ion-button {
+//   --min-height: 44px; /* iOS minimum touch target */
+  
+//   .platform-android & {
+//     --min-height: 48px; /* Android minimum touch target */
+//   }
+  
+//   /* Ensure buttons have proper padding */
+//   --padding-top: 12px;
+//   --padding-bottom: 12px;
+//   --padding-start: 16px;
+//   --padding-end: 16px;
+  
+//   .platform-ios & {
+//     --border-radius: 8px;
+//   }
+  
+//   .platform-android & {
+//     --border-radius: 4px;
+//     text-transform: uppercase;
+//     font-weight: 500;
+//     letter-spacing: 0.5px;
+//   }
+// }
+
+/* Fix selected option visibility in ion-select popover for light mode */
+// body:not(.dark) {
+//   ion-popover {
+//     ion-select-option {
+//       &[selected],
+//       &.option-selected,
+//       &.ion-selected,
+//       &[aria-selected="true"] {
+//         --color: #ffffff !important;
+//         --background: var(--ion-color-primary, #3880ff) !important;
+//         --background-hover: var(--ion-color-primary, #3880ff) !important;
+//         color: #ffffff !important;
+//         background: var(--ion-color-primary, #3880ff) !important;
+//         background-color: var(--ion-color-primary, #3880ff) !important;
+        
+//         // Target the button element inside
+//         button {
+//           --color: #ffffff !important;
+//           color: #ffffff !important;
+//           background-color: var(--ion-color-primary, #3880ff) !important;
+//         }
+        
+//         // Target the label/text inside
+//         .select-text,
+//         .select-text-ios,
+//         .select-text-md {
+//           color: #ffffff !important;
+//         }
+//       }
+//     }
+//   }
+// }
+
+// General fix for all modes (with higher specificity)
+// ion-popover {
+//   ion-select-option {
+//     &[selected],
+//     &.option-selected,
+//     &.ion-selected,
+//     &[aria-selected="true"] {
+//       --color: #ffffff !important;
+//       color: #ffffff !important;
+      
+//       button {
+//         --color: #ffffff !important;
+//         color: #ffffff !important;
+//       }
+      
+//       .select-text,
+//       .select-text-ios,
+//       .select-text-md {
+//         color: #ffffff !important;
+//       }
+//     }
+//   }
+// }
+
+/* Theme-aware ion-item styling */
+ion-item {
+  --background: var(--ion-background-color);
+  --color: var(--ion-text-color);
+}
+
+/* Selected items in select popover - use light tint of primary color */
+ion-item.item-radio-checked {
+  --background: rgba(var(--ion-color-primary-rgb), 0.12) !important;
+  --color: var(--ion-color-primary) !important;
+  
+  ion-label {
+    --color: var(--ion-color-primary) !important;
+  }
+}
+
+/* Theme-aware ion-list styling */
+ion-list {
+  --background: var(--ion-background-color) !important;
+  background: var(--ion-background-color) !important;
+}
+

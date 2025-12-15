@@ -1,0 +1,588 @@
+.bookings-container {
+  padding: 1rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding-bottom: 2rem;
+
+  @media (min-width: 768px) {
+    padding: 1.5rem;
+  }
+}
+
+.bookings-header {
+  margin-bottom: 1.5rem;
+  padding-top: env(safe-area-inset-top, 0px);
+
+  h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0;
+  }
+}
+
+ion-segment {
+  margin-bottom: 1rem;
+  --background: var(--ion-card-background, #ffffff);
+  --indicator-color: var(--ion-color-primary, #3880ff);
+  --indicator-box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  border-radius: 12px;
+  padding: clamp(0.375rem, 1.5vw, 0.5rem);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-sizing: border-box;
+  width: 100%;
+  display: flex;
+  overflow: visible;
+
+  ion-segment-button {
+    --color-checked: var(--ion-color-primary, #3880ff);
+    --indicator-color: var(--ion-color-primary, #3880ff);
+    --color: var(--ion-text-color);
+    --ripple-color: var(--ion-color-primary, #3880ff);
+    min-width: 0;
+    flex: 1;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: visible;
+    
+    ion-label {
+      white-space: nowrap;
+      overflow: visible !important;
+      text-overflow: clip;
+      font-size: clamp(11px, 3.5vw, 14px);
+      padding: clamp(6px, 1.5vw, 10px) clamp(8px, 2vw, 12px);
+      text-align: center;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1.2;
+      margin: 0;
+    }
+  }
+}
+
+.md ion-segment {
+  --indicator-color: transparent;
+  background: var(--ion-card-background, #ffffff);
+  padding: clamp(0.375rem, 1.5vw, 0.5rem);
+  box-sizing: border-box;
+  display: flex;
+  overflow: visible;
+  
+  ion-segment-button {
+    --indicator-color: transparent;
+    --color-checked: #ffffff;
+    --background-checked: var(--ion-color-primary, #3880ff);
+    border-radius: 8px;
+    margin: clamp(2px, 0.75vw, 3px);
+    min-width: 0;
+    flex: 1;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: visible;
+    
+    &.segment-button-checked {
+      background: var(--ion-color-primary, #3880ff) !important;
+      margin: clamp(2px, 0.75vw, 3px);
+      
+      ion-label {
+        --color: #ffffff !important;
+        color: #ffffff !important;
+        font-weight: 600;
+      }
+    }
+    
+    ion-label {
+      white-space: nowrap;
+      overflow: visible !important;
+      text-overflow: clip;
+      font-size: clamp(11px, 3.5vw, 14px);
+      padding: clamp(6px, 1.5vw, 10px) clamp(8px, 2vw, 12px);
+      text-align: center;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1.2;
+      margin: 0;
+    }
+  }
+}
+
+// iOS specific adjustments
+.platform-ios {
+  ion-segment {
+    ion-segment-button {
+      ion-label {
+        font-size: clamp(12px, 3.8vw, 15px);
+      }
+    }
+    
+    &.md ion-segment-button {
+      ion-label {
+        font-size: clamp(12px, 3.8vw, 15px);
+      }
+    }
+  }
+}
+
+// Android specific adjustments
+.platform-android {
+  ion-segment {
+    ion-segment-button {
+      ion-label {
+        font-size: clamp(11px, 3.2vw, 14px);
+        font-weight: 500;
+      }
+    }
+    
+    &.md ion-segment-button {
+      ion-label {
+        font-size: clamp(11px, 3.2vw, 14px);
+      }
+    }
+  }
+}
+
+// Extra small screens
+@media (max-width: 320px) {
+  ion-segment {
+    padding: 0.25rem;
+    
+    ion-segment-button {
+      ion-label {
+        font-size: 10px;
+        padding: 6px 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+    }
+    
+    &.md {
+      padding: 0.25rem;
+      
+      ion-segment-button {
+        margin: 2px;
+        
+        &.segment-button-checked {
+          margin: 2px;
+        }
+        
+        ion-label {
+          font-size: 10px;
+          padding: 6px 4px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+      }
+    }
+  }
+}
+
+.month-selector-container {
+  margin-bottom: 1.5rem;
+}
+
+.month-selector-card {
+  background: linear-gradient(135deg, rgba(var(--ion-color-primary-rgb, 56, 128, 255), 0.08) 0%, rgba(var(--ion-color-secondary-rgb, 120, 119, 198), 0.05) 100%);
+  border-radius: 16px;
+  padding: 1rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(var(--ion-color-primary-rgb, 56, 128, 255), 0.15);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--ion-color-primary, #3880ff) 0%, var(--ion-color-secondary, #7877c6) 100%);
+    opacity: 0.6;
+  }
+
+  &:active {
+    transform: scale(0.98);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  }
+}
+
+.month-selector-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(var(--ion-color-primary-rgb, 56, 128, 255), 0.1);
+
+  .calendar-icon {
+    font-size: 1.5rem;
+    color: var(--ion-color-primary, #3880ff);
+    filter: drop-shadow(0 2px 4px rgba(var(--ion-color-primary-rgb, 56, 128, 255), 0.2));
+  }
+
+  .month-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    opacity: 0.7;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+}
+
+.selectors-row {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.month-selector,
+.year-selector {
+  --background: transparent;
+  --border-radius: 12px;
+  --padding-start: 0;
+  --padding-end: 0;
+  --inner-padding-end: 0;
+  --inner-padding-start: 0;
+  --min-height: auto;
+  margin: 0;
+  border-radius: 12px;
+  background: var(--ion-card-background, #ffffff);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(var(--ion-color-primary-rgb, 56, 128, 255), 0.1);
+  transition: all 0.3s ease;
+  flex: 1;
+
+  &:hover {
+    box-shadow: 0 4px 12px rgba(var(--ion-color-primary-rgb, 56, 128, 255), 0.15);
+    border-color: rgba(var(--ion-color-primary-rgb, 56, 128, 255), 0.2);
+  }
+
+  ion-select {
+    --padding-start: 1rem;
+    --padding-end: 1rem;
+    --padding-top: 0.875rem;
+    --padding-bottom: 0.875rem;
+    width: 100%;
+    font-size: 1rem;
+    font-weight: 600;
+    
+    &::part(icon) {
+      color: var(--ion-color-primary, #3880ff);
+      opacity: 0.8;
+    }
+  }
+}
+
+.bookings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+
+.month-header {
+  --background: var(--ion-card-background, #ffffff);
+  --padding-start: 1rem;
+  --padding-end: 1rem;
+  border-radius: 12px;
+  margin-bottom: 0.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+
+  ion-label {
+    h2 {
+      font-size: 1.125rem;
+      font-weight: 600;
+      margin: 0 0 0.25rem 0;
+    }
+
+    p {
+      font-size: 0.875rem;
+      opacity: 0.7;
+      margin: 0;
+    }
+  }
+}
+
+.month-bookings {
+  padding: 0.5rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.booking-card {
+  margin: 0;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: var(--ion-card-background, #ffffff);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  ion-card-content {
+    padding: 1rem;
+  }
+}
+
+.booking-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.booking-date {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+
+  ion-icon {
+    font-size: 1.125rem;
+    color: var(--ion-color-primary, #3880ff);
+  }
+}
+
+.booking-status {
+  padding: 0.375rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+
+  &.status-pending {
+    background: rgba(56, 128, 255, 0.1);
+    color: var(--ion-color-primary, #3880ff);
+  }
+
+  &.status-completed {
+    background: rgba(46, 204, 113, 0.1);
+    color: #2ecc71;
+  }
+
+  &.status-cancelled {
+    background: rgba(231, 76, 60, 0.1);
+    color: #e74c3c;
+  }
+}
+
+.booking-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.booking-location {
+  .location-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .location-item {
+    display: flex;
+    gap: 0.75rem;
+
+    .location-icon {
+      font-size: 1.25rem;
+      flex-shrink: 0;
+    }
+
+    &.pickup-item .location-icon {
+      color: var(--ion-color-primary, #3880ff);
+    }
+
+    &.dropoff-item .location-icon {
+      color: #2ecc71;
+    }
+
+    .location-content {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+  }
+
+  .location-label {
+    font-size: 0.75rem;
+    opacity: 0.6;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .location-text {
+    font-size: 0.9375rem;
+    font-weight: 500;
+  }
+}
+
+.booking-passenger {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9375rem;
+
+  ion-icon {
+    font-size: 1.125rem;
+    color: var(--ion-color-primary, #3880ff);
+  }
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  opacity: 0.6;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+
+  ion-spinner {
+    margin-bottom: 1rem;
+  }
+
+  p {
+    color: var(--ion-text-color);
+    opacity: 0.7;
+    margin: 0;
+  }
+}
+
+// Dark mode adjustments
+body.dark {
+  ion-segment {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .month-selector-card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+
+    &::before {
+      opacity: 0.4;
+    }
+
+    .month-selector-header {
+      border-bottom-color: rgba(255, 255, 255, 0.1);
+
+      .calendar-icon {
+        filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+      }
+
+      .month-label {
+        opacity: 0.8;
+      }
+    }
+
+    .month-selector,
+    .year-selector {
+      background: rgba(255, 255, 255, 0.05);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+
+      &:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        border-color: rgba(255, 255, 255, 0.15);
+      }
+    }
+  }
+
+  .month-header {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .booking-card {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .booking-header {
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .booking-status {
+    &.status-pending {
+      background: rgba(56, 128, 255, 0.2);
+      color: #64b5f6;
+    }
+
+    &.status-completed {
+      background: rgba(46, 204, 113, 0.2);
+      color: #81c784;
+    }
+
+    &.status-cancelled {
+      background: rgba(231, 76, 60, 0.2);
+      color: #e57373;
+    }
+  }
+
+  .location-label {
+    opacity: 0.7;
+  }
+
+  .booking-location {
+    .location-item {
+      &.pickup-item {
+        .location-icon {
+          color: #64b5f6;
+        }
+      }
+
+      &.dropoff-item {
+        .location-icon {
+          color: #81c784;
+        }
+      }
+    }
+  }
+}
+
+// Responsive adjustments
+@media (min-width: 768px) {
+  .booking-card {
+    ion-card-content {
+      padding: 1.25rem;
+    }
+  }
+
+  .booking-location {
+    .location-item {
+      .location-content {
+        flex-direction: row;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .location-label {
+        min-width: 60px;
+      }
+    }
+  }
+}

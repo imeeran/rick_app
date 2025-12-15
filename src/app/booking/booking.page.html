@@ -1,0 +1,173 @@
+<ion-content [fullscreen]="true">
+  <div class="bookings-container">
+    <div class="bookings-header">
+      <h1>Bookings</h1>
+    </div>
+
+    <!-- Segments -->
+    <ion-segment #segmentElement [value]="selectedSegment()" (ionChange)="segmentChanged($event)">
+      <ion-segment-button value="pending">
+        <ion-label>Pending</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="completed">
+        <ion-label>Completed</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="cancelled">
+        <ion-label>Cancelled</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+
+    <!-- Month and Year Selector -->
+    <div class="month-selector-container">
+      <div class="month-selector-card">
+        <div class="month-selector-header">
+          <ion-icon name="calendar-outline" class="calendar-icon"></ion-icon>
+          <span class="month-label">Select Period</span>
+        </div>
+        <div class="selectors-row">
+          <ion-item class="month-selector" lines="none">
+            <ion-select 
+              [value]="selectedMonth()"
+              (ionChange)="monthChanged($event)"
+              interface="popover"
+              class="month-select"
+              placeholder="Month">
+              @for (month of months; track month.value) {
+                <ion-select-option [value]="month.value">{{ month.label }}</ion-select-option>
+              }
+            </ion-select>
+          </ion-item>
+          <ion-item class="year-selector" lines="none">
+            <ion-select 
+              [value]="selectedYear()"
+              (ionChange)="yearChanged($event)"
+              interface="popover"
+              class="year-select"
+              placeholder="Year">
+              @for (year of years; track year.value) {
+                <ion-select-option [value]="year.value">{{ year.label }}</ion-select-option>
+              }
+            </ion-select>
+          </ion-item>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bookings List -->
+    <div class="bookings-list">
+      @if (isLoading()) {
+        <div class="loading-container">
+          <ion-spinner></ion-spinner>
+          <p>Loading bookings...</p>
+        </div>
+      } @else if (showAll()) {
+        <!-- Show All: Collapsible Months -->
+        <ion-accordion-group>
+          @for (group of monthGroups(); track group.monthKey) {
+            <ion-accordion [value]="group.monthKey">
+              <ion-item slot="header" class="month-header">
+                <ion-label>
+                  <h2>{{ group.monthName }}</h2>
+                  <p>{{ group.bookings.length }} booking{{ group.bookings.length !== 1 ? 's' : '' }}</p>
+                </ion-label>
+              </ion-item>
+              
+              <div slot="content" class="month-bookings">
+                @for (booking of group.bookings; track booking.id) {
+                  <ion-card class="booking-card">
+                    <ion-card-content>
+                      <div class="booking-header">
+                        <div class="booking-date">
+                          <ion-icon name="time-outline"></ion-icon>
+                          <span>{{ formatDate(booking.date, booking.time) }}</span>
+                        </div>
+                        <div class="booking-status" [class]="'status-' + booking.status">
+                          {{ booking.status | titlecase }}
+                        </div>
+                      </div>
+                      
+                      <div class="booking-details">
+                        <div class="booking-location">
+                          <div class="location-info">
+                            <div class="location-item pickup-item">
+                              <ion-icon name="location-outline" class="location-icon"></ion-icon>
+                              <div class="location-content">
+                                <span class="location-label">From:</span>
+                                <span class="location-text">{{ booking.pickupLocation }}</span>
+                              </div>
+                            </div>
+                            <div class="location-item dropoff-item">
+                              <ion-icon name="flag-outline" class="location-icon"></ion-icon>
+                              <div class="location-content">
+                                <span class="location-label">To:</span>
+                                <span class="location-text">{{ booking.dropoffLocation }}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div class="booking-passenger">
+                          <ion-icon name="person-outline"></ion-icon>
+                          <span>{{ booking.passengerName }}</span>
+                        </div>
+                      </div>
+                    </ion-card-content>
+                  </ion-card>
+                }
+              </div>
+            </ion-accordion>
+          }
+        </ion-accordion-group>
+      } @else {
+        <!-- Single Month View -->
+        @if (filteredBookings().length > 0) {
+          @for (booking of filteredBookings(); track booking.id) {
+            <ion-card class="booking-card">
+              <ion-card-content>
+                <div class="booking-header">
+                  <div class="booking-date">
+                    <ion-icon name="time-outline"></ion-icon>
+                    <span>{{ formatDate(booking.date, booking.time) }}</span>
+                  </div>
+                  <div class="booking-status" [class]="'status-' + booking.status">
+                    {{ booking.status | titlecase }}
+                  </div>
+                </div>
+                
+                <div class="booking-details">
+                  <div class="booking-location">
+                    <div class="location-info">
+                      <div class="location-item pickup-item">
+                        <ion-icon name="location-outline" class="location-icon"></ion-icon>
+                        <div class="location-content">
+                          <span class="location-label">From:</span>
+                          <span class="location-text">{{ booking.pickupLocation }}</span>
+                        </div>
+                      </div>
+                      <div class="location-item dropoff-item">
+                        <ion-icon name="flag-outline" class="location-icon"></ion-icon>
+                        <div class="location-content">
+                          <span class="location-label">To:</span>
+                          <span class="location-text">{{ booking.dropoffLocation }}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div class="booking-passenger">
+                    <ion-icon name="person-outline"></ion-icon>
+                    <span>{{ booking.passengerName }}</span>
+                  </div>
+                </div>
+              </ion-card-content>
+            </ion-card>
+          }
+        } @else {
+          <div class="empty-state">
+            <p>No {{ selectedSegment() }} bookings found</p>
+          </div>
+        }
+      }
+    </div>
+  </div>
+</ion-content>

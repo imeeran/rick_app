@@ -3,7 +3,13 @@
 // The list of file replacements can be found in `angular.json`.
 
 export const environment = {
-  production: false
+  production: false,
+  apiUrl: 'http://localhost:3000/api', // Direct URL (bypasses proxy)
+  backendUrl: 'http://localhost:3000'
+  // apiUrl: 'http://13.61.16.44:3000/api',
+  // backendUrl: 'http://13.61.16.44:3000'
+  // apiUrl: 'https://api.ricklimo.com/api',
+  // backendUrl: 'https://api.ricklimo.com'// Development API URL - update with your actual API endpoint
 };
 
 /*

@@ -1,0 +1,89 @@
+<ion-content [fullscreen]="true" class="login-content">
+  <div class="login-background" [style.background-image]="'url(assets/images/login-bg.png)'"></div>
+  <div class="login-container">
+    <!-- Login Card with Glassmorphism -->
+    <div class="login-card">
+      <!-- Logo Section -->
+      <div class="logo-section">
+        <ion-icon name="car-outline" class="app-logo"></ion-icon>
+        <h1 class="app-title">Rick's Cab</h1>
+        <p class="app-subtitle">Your journey starts here</p>
+      </div>
+
+      <!-- Login Form -->
+      <form [formGroup]="loginForm" (ngSubmit)="onLogin()" class="login-form">
+      <!-- Rick ID Input -->
+      <ion-item lines="none" class="form-item" [class.item-has-error]="(rickControl?.invalid && rickControl?.touched) || loginForm.errors?.['apiError']">
+        <ion-icon slot="start" name="person-outline" class="input-icon"></ion-icon>
+        <ion-label position="stacked">Rick ID</ion-label>
+        <ion-input
+          type="text"
+          formControlName="rick"
+          placeholder="Enter your Rick ID"
+          autocomplete="username"
+          [clearOnEdit]="true">
+        </ion-input>
+      </ion-item>
+      @if (rickControl?.invalid && rickControl?.touched) {
+        <div class="error-message">
+          @if (rickControl?.errors?.['required']) {
+            <span>Rick ID is required</span>
+          }
+        </div>
+      }
+
+      <!-- Password Input -->
+      <ion-item lines="none" class="form-item" [class.item-has-error]="(passwordControl?.invalid && passwordControl?.touched) || loginForm.errors?.['apiError']">
+        <ion-icon slot="start" name="lock-closed-outline" class="input-icon"></ion-icon>
+        <ion-label position="stacked">Password</ion-label>
+        <ion-input
+          [type]="showPassword ? 'text' : 'password'"
+          formControlName="password"
+          placeholder="Enter your password"
+          autocomplete="current-password"
+          [clearOnEdit]="false">
+        </ion-input>
+        <ion-button
+          slot="end"
+          fill="clear"
+          class="password-toggle"
+          (click)="togglePasswordVisibility()"
+          type="button">
+          <ion-icon [name]="showPassword ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
+        </ion-button>
+      </ion-item>
+      @if (passwordControl?.invalid && passwordControl?.touched) {
+        <div class="error-message">
+          @if (passwordControl?.errors?.['required']) {
+            <span>Password is required</span>
+          }
+        </div>
+      }
+
+      <!-- API Error Message -->
+      @if (errorMessage && loginForm.touched) {
+        <div class="error-message">
+          <span>{{ errorMessage }}</span>
+        </div>
+      }
+
+      <!-- Login Button -->
+      <ion-button
+        expand="block"
+        type="submit"
+        class="login-button"
+        [disabled]="isLoading">
+        @if (isLoading) {
+          <ion-spinner name="crescent"></ion-spinner>
+        } @else {
+          <span>Login</span>
+        }
+      </ion-button>
+    </form>
+    </div>
+  </div>
+</ion-content>
+
+
+
+

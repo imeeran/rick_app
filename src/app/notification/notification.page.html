@@ -1,0 +1,99 @@
+<ion-content [fullscreen]="true">
+  <div class="notifications-container">
+    <!-- Header -->
+    <div class="notifications-header">
+      <h1>Notifications</h1>
+      @if (unreadCount() > 0) {
+        <ion-badge color="primary" class="unread-badge">{{ unreadCount() }}</ion-badge>
+      }
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="action-buttons">
+      @if (unreadCount() > 0) {
+        <ion-button 
+          fill="outline" 
+          size="small" 
+          (click)="markAllAsRead()"
+          class="action-btn">
+          <ion-icon name="checkmark-done-outline" slot="start"></ion-icon>
+          Mark All Read
+        </ion-button>
+      }
+      <ion-button 
+        fill="outline" 
+        size="small" 
+        color="medium"
+        (click)="clearReadNotifications()"
+        class="action-btn">
+        <ion-icon name="trash-outline" slot="start"></ion-icon>
+        Clear Read
+      </ion-button>
+      <ion-button 
+        fill="outline" 
+        size="small" 
+        color="danger"
+        (click)="clearAllNotifications()"
+        class="action-btn">
+        <ion-icon name="trash-outline" slot="start"></ion-icon>
+        Clear All
+      </ion-button>
+    </div>
+
+    <!-- Notifications List -->
+    @if (notifications().length === 0) {
+      <div class="empty-state">
+        <ion-icon name="notifications-outline" class="empty-icon"></ion-icon>
+        <h2>No Notifications</h2>
+        <p>You're all caught up! New notifications will appear here.</p>
+      </div>
+    } @else {
+      <ion-list class="notifications-list">
+        @for (notification of notifications(); track notification.id) {
+          <ion-card 
+            class="notification-card" 
+            [class.unread]="!notification.read"
+            (click)="viewNotification(notification)">
+            <ion-card-content>
+              <div class="notification-content">
+                <div class="notification-icon-wrapper">
+                  <ion-icon 
+                    [name]="getNotificationIcon(notification.type)" 
+                    [color]="getNotificationColor(notification.type)"
+                    class="notification-icon">
+                  </ion-icon>
+                  @if (!notification.read) {
+                    <div class="unread-indicator"></div>
+                  }
+                </div>
+                
+                <div class="notification-details">
+                  <div class="notification-header">
+                    <h3 class="notification-title">{{ notification.title }}</h3>
+                    <span class="notification-time">{{ formatTimestamp(notification.timestamp) }}</span>
+                  </div>
+                  
+                  <p class="notification-message">{{ notification.message }}</p>
+                  
+                  @if (notification.orderId) {
+                    <div class="notification-meta">
+                      <ion-icon name="document-text-outline" class="meta-icon"></ion-icon>
+                      <span>Order ID: {{ notification.orderId }}</span>
+                    </div>
+                  }
+                  
+                  @if (notification.payslipMonth && notification.payslipYear) {
+                    <div class="notification-meta">
+                      <ion-icon name="calendar-outline" class="meta-icon"></ion-icon>
+                      <span>{{ notification.payslipMonth }} {{ notification.payslipYear }}</span>
+                    </div>
+                  }
+                </div>
+              </div>
+            </ion-card-content>
+          </ion-card>
+        }
+      </ion-list>
+    }
+  </div>
+</ion-content>

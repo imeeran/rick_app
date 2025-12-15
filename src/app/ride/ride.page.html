@@ -1,0 +1,130 @@
+<ion-content [fullscreen]="true">
+  <div class="map-container">
+    @if (isLoading) {
+      <div class="loading-overlay">
+        <ion-spinner></ion-spinner>
+        <p>Loading map...</p>
+      </div>
+    }
+    <div #mapContainer class="map" [class.hidden]="!isMapReady"></div>
+    
+    <!-- Online/Offline Toggle Button -->
+    <div class="online-toggle-container">
+      <button 
+        class="online-toggle-btn" 
+        [class.online]="isOnline"
+        (click)="toggleOnlineStatus()"
+        type="button">
+        <span class="toggle-indicator"></span>
+        <span class="toggle-label">{{ isOnline ? 'Online' : 'Offline' }}</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Ride Details Card (Bottom Sheet) -->
+  @if (isLoadingBookings) {
+    <div class="ride-details-card">
+      <ion-card>
+        <ion-card-content>
+          <div class="loading-container" style="text-align: center; padding: 2rem;">
+            <ion-spinner></ion-spinner>
+            <p style="margin-top: 1rem;">Loading pending bookings...</p>
+          </div>
+        </ion-card-content>
+      </ion-card>
+    </div>
+  } @else if (upcomingRide) {
+    <div class="ride-details-card">
+      <!-- Show All Button -->
+      <button class="show-all-btn" (click)="showAllRides()" type="button">
+        <ion-icon name="list-outline"></ion-icon>
+        <span>Show All</span>
+      </button>
+      
+      <ion-card [class.minimized]="isRideCardMinimized()">
+        <ion-card-header>
+          <div class="card-header-content">
+            <ion-card-title>New Ride Request</ion-card-title>
+            <button 
+              class="minimize-ride-btn" 
+              (click)="toggleRideCardMinimize()"
+              type="button"
+              [title]="isRideCardMinimized() ? 'Expand ride details' : 'Minimize ride details'">
+              <ion-icon [name]="isRideCardMinimized() ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+            </button>
+          </div>
+        </ion-card-header>
+        @if (!isRideCardMinimized()) {
+          <ion-card-content>
+          @if (!isOnline) {
+            <div class="offline-alert">
+              <ion-icon name="warning-outline"></ion-icon>
+              <span>You're currently offline. Please go online to accept or reject rides.</span>
+            </div>
+          }
+          <div class="ride-info">
+            <!-- Passenger Info with Date -->
+            <div class="passenger-info">
+              <ion-icon name="person-outline"></ion-icon>
+              <div class="passenger-details">
+                <span class="passenger-name">{{ upcomingRide.passengerName }}</span>
+                <span class="ride-date">{{ formatDate(upcomingRide.date, upcomingRide.time) }}</span>
+              </div>
+            </div>
+
+            <!-- Pickup Location -->
+            <div class="location-row pickup">
+              <ion-icon name="location-outline" class="location-icon"></ion-icon>
+              <div class="location-details">
+                <span class="location-label">Pickup</span>
+                <span class="location-text">{{ upcomingRide.pickupLocation }}</span>
+              </div>
+            </div>
+
+            <!-- Dropoff Location -->
+            <div class="location-row dropoff">
+              <ion-icon name="flag-outline" class="location-icon"></ion-icon>
+              <div class="location-details">
+                <span class="location-label">Dropoff</span>
+                <span class="location-text">{{ upcomingRide.dropoffLocation }}</span>
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+              <ion-button 
+                expand="block" 
+                color="danger" 
+                (click)="rejectRide()"
+                [disabled]="isUpdatingStatus"
+                [class.button-disabled]="!isOnline"
+                class="reject-btn">
+                @if (isUpdatingStatus) {
+                  <ion-spinner name="crescent"></ion-spinner>
+                } @else {
+                  <ion-icon name="close-circle-outline" slot="start"></ion-icon>
+                  Reject
+                }
+              </ion-button>
+              <ion-button 
+                expand="block" 
+                color="success" 
+                (click)="acceptRide()"
+                [disabled]="isUpdatingStatus"
+                [class.button-disabled]="!isOnline"
+                class="accept-btn">
+                @if (isUpdatingStatus) {
+                  <ion-spinner name="crescent"></ion-spinner>
+                } @else {
+                  <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
+                  Accept
+                }
+              </ion-button>
+            </div>
+          </div>
+        </ion-card-content>
+        }
+      </ion-card>
+    </div>
+  }
+</ion-content>

@@ -1,0 +1,535 @@
+// Login Page Styles with Theme Support and iOS/Android Compatibility
+
+.login-content {
+  --background: transparent;
+  --padding-top: env(safe-area-inset-top);
+  --padding-bottom: env(safe-area-inset-bottom);
+  --padding-start: env(safe-area-inset-left);
+  --padding-end: env(safe-area-inset-right);
+  position: relative;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+// Background image wrapper
+.login-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  z-index: 0;
+  
+  // Subtle overlay for better text readability
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.3) 0%,
+      rgba(0, 0, 0, 0.5) 100%
+    );
+    pointer-events: none;
+  }
+}
+
+.login-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 24px;
+  padding-top: calc(env(safe-area-inset-top) + 24px);
+  padding-bottom: calc(env(safe-area-inset-bottom) + 24px);
+  width: 100%;
+  box-sizing: border-box;
+  position: relative;
+  z-index: 1;
+
+  // iOS specific adjustments
+  .platform-ios & {
+    padding-top: calc(env(safe-area-inset-top) + 32px);
+    padding-bottom: calc(env(safe-area-inset-bottom) + 32px);
+  }
+
+  // Android specific adjustments
+  .platform-android & {
+    padding-top: calc(env(safe-area-inset-top) + 20px);
+    padding-bottom: calc(env(safe-area-inset-bottom) + 20px);
+  }
+}
+
+// Glassmorphism Card
+.login-card {
+  width: 100%;
+  max-width: 420px;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 40px 32px;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+
+  // iOS specific styling
+  .platform-ios & {
+    border-radius: 28px;
+    padding: 44px 36px;
+    box-shadow: 
+      0 8px 32px rgba(0, 0, 0, 0.25),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  }
+
+  // Android specific styling
+  .platform-android & {
+    border-radius: 20px;
+    padding: 36px 28px;
+    box-shadow: 
+      0 8px 32px rgba(0, 0, 0, 0.35),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  }
+
+  // Subtle inner glow
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.4),
+      transparent
+    );
+    pointer-events: none;
+  }
+}
+
+// Logo Section
+.logo-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 40px;
+  text-align: center;
+  width: 100%;
+
+  .platform-ios & {
+    margin-bottom: 44px;
+  }
+
+  .platform-android & {
+    margin-bottom: 36px;
+  }
+}
+
+.app-logo {
+  font-size: 72px;
+  color: #ffffff;
+  margin-bottom: 16px;
+  transition: all 0.3s ease;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3));
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+
+  .platform-ios & {
+    font-size: 80px;
+  }
+
+  .platform-android & {
+    font-size: 68px;
+  }
+}
+
+.app-title {
+  font-size: 32px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 8px 0;
+  transition: all 0.3s ease;
+  letter-spacing: -0.5px;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+
+  .platform-ios & {
+    font-size: 34px;
+    font-weight: 600;
+    letter-spacing: -0.3px;
+  }
+
+  .platform-android & {
+    font-size: 30px;
+    font-weight: 500;
+    letter-spacing: 0;
+  }
+}
+
+.app-subtitle {
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.9);
+  opacity: 0.9;
+  margin: 0;
+  transition: all 0.3s ease;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+
+  .platform-ios & {
+    font-size: 17px;
+    font-weight: 400;
+  }
+
+  .platform-android & {
+    font-size: 15px;
+    font-weight: 400;
+  }
+}
+
+// Login Form
+.login-form {
+  width: 100%;
+}
+
+.form-item {
+  --background: rgba(255, 255, 255, 0.25);
+  --color: #ffffff;
+  --border-radius: 16px;
+  --padding-start: 18px;
+  --padding-end: 18px;
+  --inner-padding-end: 0;
+  --inner-padding-start: 0;
+  --min-height: 56px;
+  margin-bottom: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+
+  // Center align icon slot
+  [slot="start"] {
+    align-self: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  // iOS specific styling
+  .platform-ios & {
+    --border-radius: 18px;
+    --min-height: 52px;
+    --padding-start: 20px;
+    --padding-end: 20px;
+    border-width: 0.5px;
+  }
+
+  // Android specific styling
+  .platform-android & {
+    --border-radius: 12px;
+    --min-height: 56px;
+  }
+
+  // Focus state
+  &.item-has-focus {
+    --background: rgba(255, 255, 255, 0.35);
+    border-color: rgba(255, 255, 255, 0.5);
+    box-shadow: 
+      0 4px 16px rgba(0, 0, 0, 0.2),
+      0 0 0 3px rgba(255, 255, 255, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    transform: translateY(-1px);
+  }
+
+  // Error state
+  &.item-has-error {
+    border-color: rgba(255, 82, 82, 0.6);
+    --background: rgba(255, 82, 82, 0.15);
+    box-shadow: 
+      0 4px 12px rgba(255, 82, 82, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+}
+
+.input-icon {
+  font-size: 22px;
+  color: rgba(255, 255, 255, 0.9);
+  margin-right: 12px;
+  transition: all 0.3s ease;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+
+  .platform-ios & {
+    font-size: 24px;
+    margin-right: 14px;
+  }
+
+  .platform-android & {
+    font-size: 20px;
+    margin-right: 10px;
+  }
+}
+
+ion-label {
+  --color: rgba(255, 255, 255, 0.95);
+  color: rgba(255, 255, 255, 0.95);
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  transition: color 0.3s ease;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+
+  .platform-ios & {
+    font-size: 15px;
+    font-weight: 500;
+  }
+
+  .platform-android & {
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: none;
+  }
+}
+
+ion-input {
+  --color: #ffffff;
+  --placeholder-color: rgba(255, 255, 255, 0.7);
+  --placeholder-opacity: 0.7;
+  font-size: 16px;
+  transition: color 0.3s ease;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+
+  .platform-ios & {
+    font-size: 17px;
+  }
+
+  .platform-android & {
+    font-size: 16px;
+  }
+}
+
+.password-toggle {
+  --color: rgba(255, 255, 255, 0.8);
+  --color-hover: #ffffff;
+  margin: 0;
+  --padding-start: 8px;
+  --padding-end: 8px;
+  transition: all 0.3s ease;
+
+  &:hover {
+    --color: #ffffff;
+  }
+
+  ion-icon {
+    font-size: 22px;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
+
+    .platform-ios & {
+      font-size: 24px;
+    }
+
+    .platform-android & {
+      font-size: 20px;
+    }
+  }
+}
+
+.error-message {
+  color: #ffb3b3;
+  font-size: 12px;
+  margin-top: -16px;
+  margin-bottom: 16px;
+  margin-left: 18px;
+  transition: color 0.3s ease;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  font-weight: 500;
+
+  .platform-ios & {
+    font-size: 13px;
+    margin-left: 20px;
+  }
+
+  .platform-android & {
+    font-size: 12px;
+    margin-left: 18px;
+  }
+}
+
+.forgot-password {
+  text-align: right;
+  margin-top: -8px;
+  margin-bottom: 24px;
+  width: 100%;
+
+  .platform-ios & {
+    margin-bottom: 28px;
+  }
+
+  .platform-android & {
+    margin-bottom: 20px;
+  }
+}
+
+.forgot-link {
+  color: var(--ion-color-primary);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  transition: color 0.3s ease, opacity 0.3s ease;
+
+  &:hover,
+  &:active {
+    opacity: 0.8;
+  }
+
+  .platform-ios & {
+    font-size: 15px;
+    font-weight: 400;
+  }
+
+  .platform-android & {
+    font-size: 14px;
+    font-weight: 500;
+    text-transform: none;
+  }
+}
+
+.login-button {
+  --background: rgba(255, 255, 255, 0.95);
+  --background-activated: rgba(255, 255, 255, 0.85);
+  --background-hover: rgba(255, 255, 255, 1);
+  --color: #1a1a1a;
+  --border-radius: 16px;
+  --padding-top: 16px;
+  --padding-bottom: 16px;
+  margin-top: 8px;
+  font-size: 16px;
+  font-weight: 700;
+  text-transform: none;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+  height: 56px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 
+    0 8px 24px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+
+  &:disabled {
+    opacity: 0.5;
+  }
+
+  &:active {
+    transform: translateY(1px);
+    box-shadow: 
+      0 4px 12px rgba(0, 0, 0, 0.25),
+      inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  }
+
+  // iOS specific styling
+  .platform-ios & {
+    --border-radius: 18px;
+    --padding-top: 14px;
+    --padding-bottom: 14px;
+    height: 52px;
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: -0.2px;
+  }
+
+  // Android specific styling
+  .platform-android & {
+    --border-radius: 12px;
+    --padding-top: 16px;
+    --padding-bottom: 16px;
+    height: 56px;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  ion-spinner {
+    --color: #1a1a1a;
+  }
+}
+
+
+// Dark mode specific adjustments
+body.dark {
+  .login-background {
+    // Stronger overlay for dark mode
+    &::after {
+      background: linear-gradient(
+        to bottom,
+        rgba(0, 0, 0, 0.5) 0%,
+        rgba(0, 0, 0, 0.7) 100%
+      );
+    }
+  }
+
+  .login-card {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.15);
+  }
+
+  .form-item {
+    --background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.2);
+
+    &.item-has-focus {
+      --background: rgba(255, 255, 255, 0.25);
+      border-color: rgba(255, 255, 255, 0.4);
+    }
+
+  }
+}
+
+// Responsive adjustments for larger screens
+@media (min-width: 768px) {
+  .login-container {
+    padding: 40px;
+  }
+
+  .login-card {
+    max-width: 480px;
+    padding: 48px 40px;
+  }
+
+  .app-logo {
+    font-size: 88px;
+  }
+
+  .app-title {
+    font-size: 36px;
+  }
+}
+
+// Safe area adjustments for devices with notches
+@supports (padding: max(0px)) {
+  .login-container {
+    padding-top: max(24px, env(safe-area-inset-top) + 24px);
+    padding-bottom: max(24px, env(safe-area-inset-bottom) + 24px);
+    padding-left: max(24px, env(safe-area-inset-left) + 24px);
+    padding-right: max(24px, env(safe-area-inset-right) + 24px);
+  }
+}
+ion-item, ion-button {
+  border-radius: 16px;
+}
+

@@ -1,0 +1,248 @@
+.dashboard-container {
+  padding: 1rem;
+  max-width: 1400px;
+  margin: 0 auto;
+
+  @media (min-width: 768px) {
+    padding: 1.5rem;
+  }
+}
+
+.dashboard-header {
+  margin-bottom: 1.5rem;
+  padding-top: env(safe-area-inset-top, 0px);
+
+  h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--ion-text-color);
+    margin: 0 0 0.25rem 0;
+  }
+
+  .subtitle {
+    font-size: 1rem;
+    color: var(--ion-text-color);
+    opacity: 0.7;
+    margin: 0;
+  }
+}
+
+.stats-grid {
+  margin-bottom: 1.5rem;
+  padding: 0;
+
+  ion-col {
+    padding: 0.5rem;
+
+    @media (min-width: 768px) {
+      padding: 0.75rem;
+    }
+  }
+}
+
+.stat-card {
+  margin: 0;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  height: 100%;
+  background: var(--ion-card-background, #ffffff);
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  ion-card-content {
+    padding: 1.25rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 140px;
+
+    @media (min-width: 768px) {
+      padding: 1.5rem;
+      min-height: 160px;
+    }
+  }
+
+  .stat-icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    opacity: 0.9;
+  }
+
+  .stat-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--ion-text-color);
+    margin-bottom: 0.25rem;
+    line-height: 1.2;
+
+    @media (min-width: 768px) {
+      font-size: 2rem;
+    }
+  }
+
+  .stat-label {
+    font-size: 0.875rem;
+    color: var(--ion-text-color);
+    opacity: 0.7;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+
+    @media (min-width: 768px) {
+      font-size: 0.9375rem;
+    }
+  }
+
+  &.completed {
+    background: linear-gradient(135deg, rgba(46, 204, 113, 0.1) 0%, rgba(46, 204, 113, 0.05) 100%);
+    border: 1px solid rgba(46, 204, 113, 0.2);
+
+    .stat-icon {
+      color: #2ecc71;
+    }
+
+    .stat-value {
+      color: #2ecc71;
+    }
+  }
+
+  &.cancelled {
+    background: linear-gradient(135deg, rgba(231, 76, 60, 0.1) 0%, rgba(231, 76, 60, 0.05) 100%);
+    border: 1px solid rgba(231, 76, 60, 0.2);
+
+    .stat-icon {
+      color: #e74c3c;
+    }
+
+    .stat-value {
+      color: #e74c3c;
+    }
+  }
+
+  &.assigned-orders-month {
+    background: linear-gradient(135deg, rgba(52, 152, 219, 0.1) 0%, rgba(52, 152, 219, 0.05) 100%);
+    border: 1px solid rgba(52, 152, 219, 0.2);
+
+    .stat-icon {
+      color: #3498db;
+    }
+
+    .stat-value {
+      color: #3498db;
+    }
+  }
+
+  &.assigned-orders-today {
+    background: linear-gradient(135deg, rgba(155, 89, 182, 0.1) 0%, rgba(155, 89, 182, 0.05) 100%);
+    border: 1px solid rgba(155, 89, 182, 0.2);
+
+    .stat-icon {
+      color: #9b59b6;
+    }
+
+    .stat-value {
+      color: #9b59b6;
+    }
+  }
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+
+  ion-spinner {
+    margin-bottom: 1rem;
+  }
+
+  p {
+    color: var(--ion-text-color);
+    opacity: 0.7;
+    margin: 0;
+  }
+}
+
+.charts-container {
+  margin-top: 1.5rem;
+
+  ion-row {
+    margin: 0;
+  }
+
+  ion-col {
+    padding: 0.5rem;
+
+    @media (min-width: 768px) {
+      padding: 0.75rem;
+    }
+  }
+}
+
+.chart-card {
+  margin: 0;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  background: var(--ion-card-background, #ffffff);
+  height: 100%;
+
+  ion-card-header {
+    padding: 1.25rem 1.25rem 0.75rem 1.25rem;
+
+    @media (min-width: 768px) {
+      padding: 1.5rem 1.5rem 1rem 1.5rem;
+    }
+
+    ion-card-title {
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: var(--ion-text-color);
+      margin: 0;
+    }
+  }
+
+  ion-card-content {
+    padding: 0.75rem 1.25rem 1.25rem 1.25rem;
+
+    @media (min-width: 768px) {
+      padding: 1rem 1.5rem 1.5rem 1.5rem;
+    }
+  }
+}
+
+.chart-wrapper {
+  position: relative;
+  height: 300px;
+  width: 100%;
+  min-height: 300px;
+
+  @media (min-width: 768px) {
+    height: 350px;
+    min-height: 350px;
+  }
+
+  canvas {
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
+    max-height: 100%;
+  }
+}
+
+// Dark mode adjustments
+body.dark {
+  .stat-card {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+
+  .chart-card {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+}
