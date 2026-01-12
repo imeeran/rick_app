@@ -70,9 +70,15 @@ ion-content {
 // Online/Offline Toggle Button
 .online-toggle-container {
   position: absolute;
-  top: 20px;
+  /* Push below status bar / notch */
+  top: calc(env(safe-area-inset-top) + 12px);
   right: 16px;
   z-index: 1000;
+}
+
+/* Push Leaflet controls (zoom) below status bar / notch */
+::ng-deep .leaflet-top {
+  top: calc(env(safe-area-inset-top) + 12px) !important;
 }
 
 .online-toggle-btn {

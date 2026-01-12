@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable, BehaviorSubject, of } from 'rxjs';
+import { Platform } from '@ionic/angular';
 
 export type NotificationType = 'order_assigned' | 'order_completed' | 'payslip_generated';
 
@@ -25,9 +26,12 @@ export class NotificationsService {
 
   private notifications: Notification[] = [];
 
-  constructor() {
+  constructor(private platform: Platform) {
     // Load notifications from localStorage or initialize with mock data
     this.loadNotifications();
+    
+    // Set up OneSignal notification listeners
+    this.setupOneSignalListeners();
   }
 
   /**
@@ -242,6 +246,77 @@ export class NotificationsService {
    */
   private generateId(): string {
     return `notif-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  }
+
+  /**
+   * Set up OneSignal notification listeners
+   */
+  private setupOneSignalListeners(): void {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    // Listen for OneSignal notifications received
+    window.addEventListener('onesignal-notification-received', (event: any) => {
+      const { notification, data } = event.detail;
+      this.handleOneSignalNotification(notification, data);
+    });
+
+    // Listen for OneSignal notifications opened (user tapped)
+    window.addEventListener('onesignal-notification-opened', (event: any) => {
+      const { notification, data } = event.detail;
+      this.handleOneSignalNotification(notification, data, true);
+    });
+  }
+
+  /**
+   * Handle OneSignal notification and convert it to app notification format
+   */
+  private handleOneSignalNotification(notification: any, data: any, opened: boolean = false): void {
+    try {
+      // Extract notification details
+      const title = notification.title || data.title || 'Notification';
+      const message = notification.body || data.message || data.body || '';
+      
+      // Determine notification type from data
+      let type: NotificationType = 'order_assigned'; // default
+      if (data.type) {
+        type = data.type as NotificationType;
+      } else if (data.orderId) {
+        type = data.orderCompleted ? 'order_completed' : 'order_assigned';
+      } else if (data.payslipMonth || data.payslipYear) {
+        type = 'payslip_generated';
+      }
+
+      // Create notification object
+      const notificationData: Omit<Notification, 'id' | 'timestamp' | 'read'> = {
+        type,
+        title,
+        message,
+        orderId: data.orderId,
+        payslipMonth: data.payslipMonth,
+        payslipYear: data.payslipYear,
+        amount: data.amount
+      };
+
+      // Add notification to the list
+      this.addNotification(notificationData);
+
+      // If notification was opened, mark it as read
+      if (opened) {
+        // The notification was just added, so mark the latest one as read
+        setTimeout(() => {
+          const latestNotification = this.notifications[0];
+          if (latestNotification && latestNotification.title === title) {
+            this.markAsRead(latestNotification.id);
+          }
+        }, 100);
+      }
+
+      console.log('OneSignal notification processed:', notificationData);
+    } catch (error) {
+      console.error('Error handling OneSignal notification:', error);
+    }
   }
 }
 

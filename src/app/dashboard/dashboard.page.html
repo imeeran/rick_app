@@ -1,8 +1,21 @@
 <ion-content [fullscreen]="true">
   <div class="dashboard-container">
     <div class="dashboard-header">
-      <h1>Dashboard</h1>
-      <p class="subtitle">{{ getCurrentMonthYear() }}</p>
+      <div class="header-content">
+        <div class="header-title">
+          <h1>Dashboard</h1>
+          <p class="subtitle">{{ getCurrentMonthYear() }}</p>
+        </div>
+        <ion-button 
+          fill="clear" 
+          class="notification-button"
+          (click)="openNotifications()">
+          <ion-icon name="notifications" slot="icon-only"></ion-icon>
+          @if (unreadCount() > 0) {
+            <ion-badge color="danger" class="notification-badge">{{ unreadCount() }}</ion-badge>
+          }
+        </ion-button>
+      </div>
     </div>
 
     @if (!isLoading && dashboardData) {

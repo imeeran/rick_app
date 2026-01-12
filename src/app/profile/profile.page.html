@@ -10,10 +10,6 @@
         <ion-icon name="briefcase-outline"></ion-icon>
         <ion-label>Professional</ion-label>
       </ion-segment-button>
-      <ion-segment-button value="payslip">
-        <ion-icon name="document-text-outline"></ion-icon>
-        <ion-label>Payslip</ion-label>
-      </ion-segment-button>
       <ion-segment-button value="theme">
         <ion-icon name="color-palette-outline"></ion-icon>
         <ion-label>Theme</ion-label>
@@ -162,28 +158,6 @@
                   <ion-label>
                     <p>Loading driver information...</p>
                   </ion-label>
-                </ion-item>
-              }
-            </ion-card-content>
-          </ion-card>
-        </div>
-      }
-      @case ('payslip') {
-        <div class="segment-panel">
-          <ion-card>
-            <ion-card-header>
-              <ion-card-title>Payslip</ion-card-title>
-              <ion-card-subtitle>Recent payslips</ion-card-subtitle>
-            </ion-card-header>
-            <ion-card-content>
-              @for (payslip of payslips; track payslip.month) {
-                <ion-item button lines="none">
-                  <ion-icon name="document-text" slot="start"></ion-icon>
-                  <ion-label>
-                    <h2>{{ payslip.month }}</h2>
-                    <p>Gross: {{ payslip.gross }}</p>
-                  </ion-label>
-                  <ion-icon name="chevron-forward" slot="end"></ion-icon>
                 </ion-item>
               }
             </ion-card-content>

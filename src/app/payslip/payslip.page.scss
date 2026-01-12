@@ -1,0 +1,250 @@
+.payslip-container {
+  padding: 1rem;
+  max-width: 1400px;
+  margin: 0 auto;
+
+  @media (min-width: 768px) {
+    padding: 1.5rem;
+  }
+}
+
+.payslip-header {
+  margin-bottom: 1.5rem;
+  padding-top: env(safe-area-inset-top, 0px);
+
+  h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--ion-text-color);
+    margin: 0 0 0.25rem 0;
+  }
+
+  .subtitle {
+    font-size: 1rem;
+    color: var(--ion-text-color);
+    opacity: 0.7;
+    margin: 0;
+  }
+}
+
+ion-card {
+  margin: 0;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  background: var(--ion-card-background, #ffffff);
+
+  ion-card-content {
+    padding: 1.5rem;
+
+    @media (min-width: 768px) {
+      padding: 2rem;
+    }
+  }
+}
+
+.payslip-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+
+  @media(min-width:768px){
+    gap: 1rem;
+  }
+}
+
+.payslip-card {
+  margin: 0;
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(0,0,0,.08);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(var(--ion-color-primary-rgb),.1);
+  background: var(--ion-card-background, #ffffff);
+  overflow: hidden;
+  cursor: pointer;
+
+  &.payslip-skeleton {
+    cursor: default;
+    pointer-events: none;
+  }
+
+  &:active {
+    transform: scale(0.98);
+    box-shadow: 0 1px 6px rgba(0,0,0,.12);
+  }
+
+  @media(hover:hover){
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 20px rgba(0,0,0,.12);
+    }
+  }
+
+  &.payslip-card-downloaded {
+    background: linear-gradient(135deg, rgba(var(--ion-color-success-rgb),.05) 0%,rgba(var(--ion-color-success-rgb),.02) 100%);
+    border-color: rgba(var(--ion-color-success-rgb),.2);
+    box-shadow: 0 2px 12px rgba(var(--ion-color-success-rgb),.1);
+
+    &:active {
+      transform: scale(0.98);
+    }
+
+    @media(hover:hover){
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 20px rgba(var(--ion-color-success-rgb),.15);
+      }
+    }
+  }
+
+  &.payslip-card-downloading {
+    opacity: 0.7;
+    pointer-events: none;
+  }
+
+  ion-card-content {
+    padding: 1rem;
+
+    @media(min-width:768px){
+      padding: 1.25rem;
+    }
+  }
+}
+
+.payslip-card-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.payslip-icon-wrapper {
+  flex-shrink: 0;
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+    background: linear-gradient(135deg, rgba(var(--ion-color-primary-rgb),.1) 0%,rgba(var(--ion-color-primary-rgb),.05) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+
+  .payslip-card-downloaded & {
+    background: linear-gradient(135deg, rgba(var(--ion-color-success-rgb),.15) 0%, rgba(var(--ion-color-success-rgb),.08) 100%);
+  }
+}
+
+.payslip-icon {
+  font-size: 32px;
+  color: var(--ion-color-primary);
+  transition: all 0.3s ease;
+
+  &.icon-downloaded {
+    color: var(--ion-color-success);
+  }
+
+  .payslip-card-downloaded & {
+    color: var(--ion-color-success);
+  }
+}
+
+.payslip-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.payslip-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--ion-text-color);
+  margin-bottom: 6px;
+  line-height: 1.3;
+
+  @media(min-width:768px){
+    font-size: 1.1rem;
+  }
+}
+
+.payslip-balance {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.balance-label {
+  font-size: 0.8rem;
+  color: var(--ion-color-medium);
+  font-weight: 500;
+}
+
+.balance-value {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--ion-color-primary);
+
+  .payslip-card-downloaded & {
+    color: var(--ion-color-success);
+  }
+
+  @media(min-width:768px){
+    font-size: 1rem;
+  }
+}
+
+.payslip-action {
+  flex-shrink: 0;
+}
+
+.payslip-spinner {
+  width: 24px;
+  height: 24px;
+  --color: var(--ion-color-primary);
+}
+
+.payslip-open-btn,
+.payslip-download-btn {
+  --border-radius: 12px;
+  --padding-start: 16px;
+  --padding-end: 16px;
+  height: 40px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  text-transform: none;
+  margin: 0;
+  transition: all 0.3s ease;
+
+  ion-icon {
+    font-size: 18px;
+  }
+
+  @media(min-width:768px){
+    height: 44px;
+    --padding-start: 20px;
+    --padding-end: 20px;
+    font-size: 0.9rem;
+  }
+}
+
+.payslip-open-btn {
+  --box-shadow: 0 2px 8px rgba(var(--ion-color-success-rgb),.3);
+  &:active { --box-shadow: 0 1px 4px rgba(var(--ion-color-success-rgb),.2); }
+}
+
+.payslip-download-btn {
+  --box-shadow: 0 2px 8px rgba(var(--ion-color-primary-rgb),.2);
+  &:active { --box-shadow: 0 1px 4px rgba(var(--ion-color-primary-rgb),.15); }
+}
+
+body.dark {
+  .payslip-card {
+    background: var(--ion-card-background, rgba(42, 42, 42, 0.8));
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 2px 12px rgba(0,0,0,.3);
+
+    &.payslip-card-downloaded {
+      background: linear-gradient(135deg, rgba(var(--ion-color-success-rgb),.1) 0%,rgba(var(--ion-color-success-rgb),.05) 100%);
+      border-color: rgba(var(--ion-color-success-rgb),.3);
+    }
+  }
+}
+

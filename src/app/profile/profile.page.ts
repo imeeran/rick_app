@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy, signal } from '@angular/core';
-import { 
+import {
   IonContent,
   IonCard,
   IonCardHeader,
@@ -19,21 +19,15 @@ import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { addIcons } from 'ionicons';
 import { 
-  documentText, 
   chevronForward,
   personOutline,
   briefcaseOutline,
-  documentTextOutline,
   colorPaletteOutline,
   moonOutline,
   sunnyOutline,
   logOutOutline
 } from 'ionicons/icons';
 
-interface Payslip {
-  month: string;
-  gross: string;
-}
 
 @Component({
   selector: 'app-profile',
@@ -63,24 +57,15 @@ export class ProfilePage implements OnInit, OnDestroy {
   driver = signal<Driver | null>(null);
   private themeSubscription?: Subscription;
 
-  payslips: Payslip[] = [
-    { month: 'December 2024', gross: '$5,000.00' },
-    { month: 'November 2024', gross: '$5,000.00' },
-    { month: 'October 2024', gross: '$5,000.00' },
-    { month: 'September 2024', gross: '$5,000.00' }
-  ];
-
   constructor(
     private themeService: ThemeService,
     private authService: AuthService,
     private router: Router
   ) {
     addIcons({ 
-      documentText, 
       chevronForward,
       personOutline,
       briefcaseOutline,
-      documentTextOutline,
       colorPaletteOutline,
       moonOutline,
       sunnyOutline,
@@ -183,4 +168,3 @@ export class ProfilePage implements OnInit, OnDestroy {
     this.router.navigate(['/login']);
   }
 }
-

@@ -1,43 +1,41 @@
 .segment-wrapper {
   padding: 0.75rem;
-  background: linear-gradient(135deg, rgba(var(--ion-color-primary-rgb), 0.05) 0%, rgba(var(--ion-color-secondary-rgb), 0.05) 100%);
+  background: linear-gradient(135deg, rgba(var(--ion-color-primary-rgb),.05) 0%,rgba(var(--ion-color-secondary-rgb),.05) 100%);
   border-radius: 12px;
   margin: 0.75rem;
   margin-top: calc(0.75rem + env(safe-area-inset-top, 0px));
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 12px rgba(0,0,0,.05);
   color: var(--ion-text-color);
 
-  @media (min-width: 768px) {
+  @media(min-width:768px){
     padding: 1rem;
     border-radius: 16px;
     margin: 1rem;
   }
 
-  // Dark mode adjustments
   body.dark & {
-    background: linear-gradient(135deg, rgba(var(--ion-color-primary-rgb), 0.1) 0%, rgba(var(--ion-color-secondary-rgb), 0.1) 100%);
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
-    color: var(--ion-text-color);
+    background: linear-gradient(135deg, rgba(var(--ion-color-primary-rgb),.1) 0%, rgba(var(--ion-color-secondary-rgb), 0.1) 100%);
+    box-shadow: 0 2px 12px rgba(0,0,0,.3);
   }
 }
 
 .custom-segment {
   --background: transparent;
   --indicator-color: var(--ion-color-primary);
-  --indicator-box-shadow: 0 2px 8px rgba(var(--ion-color-primary-rgb), 0.3);
+  --indicator-box-shadow: 0 2px 8px rgba(var(--ion-color-primary-rgb),.3);
   border-radius: 10px;
   overflow-x: auto;
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
   backdrop-filter: blur(10px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 16px rgba(0,0,0,.08);
   padding: 3px;
   display: flex;
   min-width: 100%;
   scrollbar-width: none;
   -ms-overflow-style: none;
 
-  @media (min-width: 768px) {
+  @media(min-width:768px){
     border-radius: 12px;
     padding: 4px;
   }
@@ -48,7 +46,7 @@
 
   body.dark & {
     background: var(--segment-bg-color, rgba(42, 42, 42, 0.8));
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 16px rgba(0,0,0,.3);
   }
 }
 
@@ -67,16 +65,15 @@ ion-segment-button {
   overflow: hidden;
   min-width: 70px;
   flex: 1 1 auto;
-  min-height: 44px; /* iOS minimum touch target */
+  min-height: 44px;
   opacity: 0.8;
   color: var(--ion-text-color) !important;
   
-  /* Android minimum touch target */
   .platform-android & {
     min-height: 48px;
   }
 
-  @media (min-width: 768px) {
+  @media(min-width:768px){
     --padding-top: 12px;
     --padding-bottom: 12px;
     --padding-start: 8px;
@@ -92,7 +89,7 @@ ion-segment-button {
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(135deg, rgba(var(--ion-color-primary-rgb), 0.1) 0%, rgba(var(--ion-color-secondary-rgb), 0.1) 100%);
+    background: linear-gradient(135deg, rgba(var(--ion-color-primary-rgb),.1) 0%, rgba(var(--ion-color-secondary-rgb), 0.1) 100%);
     opacity: 0;
     transition: opacity 0.3s ease;
     border-radius: 8px;
@@ -102,7 +99,7 @@ ion-segment-button {
     opacity: 1;
   }
 
-  @media (hover: hover) {
+  @media(hover:hover){
     &:hover::before {
       opacity: 1;
     }
@@ -115,7 +112,7 @@ ion-segment-button {
     color: var(--ion-text-color) !important;
     opacity: 0.9;
 
-    @media (min-width: 768px) {
+    @media(min-width:768px){
       font-size: 20px;
       margin-bottom: 4px;
     }
@@ -131,15 +128,15 @@ ion-segment-button {
     opacity: 0.9;
     --color: var(--ion-text-color) !important;
 
-    @media (min-width: 768px) {
+    @media(min-width:768px){
       font-size: 0.75rem;
       letter-spacing: 0.3px;
     }
   }
 
   &.segment-button-checked {
-    background: linear-gradient(135deg, rgba(var(--ion-color-primary-rgb), 0.15) 0%, rgba(var(--ion-color-secondary-rgb), 0.15) 100%);
-    box-shadow: 0 2px 8px rgba(var(--ion-color-primary-rgb), 0.2);
+    background: linear-gradient(135deg, rgba(var(--ion-color-primary-rgb),.15) 0%,rgba(var(--ion-color-secondary-rgb),.15) 100%);
+    box-shadow: 0 2px 8px rgba(var(--ion-color-primary-rgb),.2);
     transform: translateY(-1px);
     opacity: 1;
     --color: var(--ion-color-primary) !important;
@@ -162,17 +159,13 @@ ion-segment-button {
       opacity: 0;
     }
 
-    // Dark mode checked state
     body.dark & {
       --color: var(--ion-color-primary) !important;
       color: var(--ion-color-primary) !important;
-
-      ion-icon {
+      ion-icon, ion-label {
         color: var(--ion-color-primary) !important;
       }
-
       ion-label {
-        color: var(--ion-color-primary) !important;
         --color: var(--ion-color-primary) !important;
       }
     }
@@ -182,7 +175,7 @@ ion-segment-button {
 .segment-content {
   padding: 0.75rem;
 
-  @media (min-width: 768px) {
+  @media(min-width:768px){
     padding: 1rem;
   }
 }
@@ -207,7 +200,7 @@ ion-segment-button {
   padding: 0 0.5rem;
 
   ion-segment {
-    --background: rgba(var(--ion-color-primary-rgb), 0.1);
+    --background: rgba(var(--ion-color-primary-rgb),.1);
     border-radius: 12px;
     padding: 4px;
   }
@@ -218,14 +211,13 @@ ion-segment-button {
     --indicator-color: transparent;
     --padding-top: 8px;
     --padding-bottom: 8px;
-    border-radius: 8px;
-    min-height: 44px; /* iOS minimum touch target */
-    color: var(--ion-text-color) !important;
+  border-radius: 8px;
+  min-height: 44px;
+  color: var(--ion-text-color) !important;
     
-    /* Android minimum touch target */
-    .platform-android & {
-      min-height: 48px;
-    }
+  .platform-android & {
+    min-height: 48px;
+  }
 
     ion-icon {
       font-size: 18px;
@@ -244,7 +236,7 @@ ion-segment-button {
       background: var(--ion-color-primary);
       --color: #ffffff !important;
       color: #ffffff !important;
-      box-shadow: 0 2px 8px rgba(var(--ion-color-primary-rgb), 0.3);
+      box-shadow: 0 2px 8px rgba(var(--ion-color-primary-rgb),.3);
 
       ion-icon {
         color: #ffffff !important;
@@ -264,12 +256,12 @@ ion-segment-button {
   gap: 1rem;
   padding: 0.75rem 0;
 
-  @media (min-width: 480px) {
+  @media(min-width:480px){
     grid-template-columns: repeat(auto-fill, minmax(85px, 1fr));
     gap: 1.25rem;
   }
 
-  @media (min-width: 768px) {
+  @media(min-width:768px){
     grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
     gap: 1.5rem;
     padding: 1rem 0;
@@ -283,12 +275,11 @@ ion-segment-button {
   cursor: pointer;
   transition: transform 0.2s ease;
   padding: 0.5rem;
-  min-height: 100px; /* Ensure touch target size */
-  min-width: 44px; /* iOS minimum touch target */
+  min-height: 100px;
+  min-width: 44px;
   justify-content: center;
   gap: 0.5rem;
   
-  /* Android minimum touch target */
   .platform-android & {
     min-width: 48px;
   }
@@ -297,7 +288,7 @@ ion-segment-button {
     transform: scale(0.95);
   }
 
-  @media (hover: hover) {
+  @media(hover:hover){
     &:hover {
       transform: scale(1.05);
     }
@@ -327,11 +318,11 @@ ion-segment-button {
     max-width: 100%;
     transition: all 0.3s ease;
     
-    @media (min-width: 480px) {
+    @media(min-width:480px){
       font-size: 0.75rem;
     }
     
-    @media (min-width: 768px) {
+    @media(min-width:768px){
       font-size: 0.8rem;
     }
   }
@@ -342,17 +333,17 @@ ion-segment-button {
   height: 56px;
   border-radius: 50%;
   position: relative;
-  border: 3px solid rgba(0, 0, 0, 0.1);
+  border: 3px solid rgba(0,0,0,.1);
   overflow: hidden;
   transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 8px rgba(0,0,0,.15);
 
-  @media (min-width: 480px) {
+  @media(min-width:480px){
     width: 60px;
     height: 60px;
   }
 
-  @media (min-width: 768px) {
+  @media(min-width:768px){
     width: 64px;
     height: 64px;
   }
@@ -388,15 +379,14 @@ ion-segment-button {
 ion-item {
   --padding-start: 0.75rem;
   --padding-end: 0.75rem;
-  --min-height: 44px; /* iOS minimum touch target */
+  --min-height: 44px;
   --inner-border-width: 0;
 
-  /* Android minimum touch target */
   .platform-android & {
     --min-height: 48px;
   }
 
-  @media (min-width: 768px) {
+  @media(min-width:768px){
     --padding-start: 1rem;
     --padding-end: 1rem;
     --min-height: 56px;
@@ -412,7 +402,7 @@ ion-card {
   border-radius: 10px;
   margin-bottom: 0.75rem;
 
-  @media (min-width: 768px) {
+  @media(min-width:768px){
     border-radius: 12px;
     margin-bottom: 1rem;
   }
@@ -424,7 +414,7 @@ ion-card-header {
   padding-left: 1rem;
   padding-right: 1rem;
 
-  @media (max-width: 480px) {
+  @media(max-width:480px){
     padding-top: 0.75rem;
     padding-left: 0.75rem;
     padding-right: 0.75rem;
@@ -434,7 +424,7 @@ ion-card-header {
 ion-card-content {
   padding: 0.75rem;
 
-  @media (min-width: 768px) {
+  @media(min-width:768px){
     padding: 1rem;
   }
 }
@@ -442,8 +432,9 @@ ion-card-content {
 ion-card-title {
   font-size: 1.1rem;
   font-weight: 600;
+  color: var(--ion-text-color);
 
-  @media (min-width: 768px) {
+  @media(min-width:768px){
     font-size: 1.25rem;
   }
 }
@@ -451,8 +442,9 @@ ion-card-title {
 ion-card-subtitle {
   font-size: 0.8rem;
   opacity: 0.7;
+  color: var(--ion-text-color);
 
-  @media (min-width: 768px) {
+  @media(min-width:768px){
     font-size: 0.875rem;
   }
 }
@@ -463,7 +455,7 @@ ion-label h2 {
   margin-bottom: 0.25rem;
   color: var(--ion-text-color);
 
-  @media (min-width: 768px) {
+  @media(min-width:768px){
     font-size: 1rem;
   }
 }
@@ -474,17 +466,9 @@ ion-label p {
   margin-top: 0.25rem;
   color: var(--ion-text-color);
 
-  @media (min-width: 768px) {
+  @media(min-width:768px){
     font-size: 0.875rem;
   }
-}
-
-ion-card-title {
-  color: var(--ion-text-color);
-}
-
-ion-card-subtitle {
-  color: var(--ion-text-color);
 }
 
 .logout-container {
@@ -496,7 +480,7 @@ ion-card-subtitle {
   .logout-card {
     margin: 0;
     border-radius: 16px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 16px rgba(0,0,0,.1);
     background: var(--ion-card-background, #ffffff);
     overflow: hidden;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -516,7 +500,7 @@ ion-card-subtitle {
     --background-hover: var(--button-background, var(--ion-color-danger));
     --color: var(--button-text-color, #ffffff);
     --border-radius: 12px;
-    --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    --box-shadow: 0 4px 12px rgba(0,0,0,.15);
     --padding-top: 14px;
     --padding-bottom: 14px;
     --padding-start: 20px;
@@ -541,7 +525,7 @@ ion-card-subtitle {
       width: 0;
       height: 0;
       border-radius: 50%;
-      background: rgba(0, 0, 0, 0.1);
+      background: rgba(0,0,0,.1);
       transform: translate(-50%, -50%);
       transition: width 0.6s, height 0.6s;
     }
@@ -571,10 +555,9 @@ ion-card-subtitle {
       z-index: 1;
     }
 
-    // Hover effect for web
-    @media (hover: hover) {
+    @media(hover:hover){
       &:hover {
-        --box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+        --box-shadow: 0 6px 20px rgba(0,0,0,.2);
         transform: translateY(-2px);
         opacity: 1;
       }
