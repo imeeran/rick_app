@@ -80,7 +80,7 @@ export class LoginPage implements OnInit {
       const rick = this.loginForm.get('rick')?.value?.trim();
       const password = this.loginForm.get('password')?.value?.trim();
 
-      this.authService.login({ rick, password }).subscribe({
+      this.authService.login({ rick: rick?.toUpperCase(), password }).subscribe({
         next: (response) => {
           this.isLoading = false;
           // Login successful - navigate to tabs page

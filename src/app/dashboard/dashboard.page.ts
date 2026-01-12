@@ -1,5 +1,6 @@
-import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit, ChangeDetectorRef, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { 
   IonContent, 
   IonCard, 
@@ -9,13 +10,19 @@ import {
   IonGrid,
   IonRow,
   IonCol,
-  IonSpinner
+  IonSpinner,
+  IonIcon,
+  IonButton,
+  IonBadge
 } from '@ionic/angular/standalone';
 import { ViewWillEnter } from '@ionic/angular';
 import { DashboardService, DashboardData } from '../services/dashboard.service';
 import { ThemeService } from '../services/theme.service';
+import { NotificationsService } from '../services/notifications.service';
 import { Chart, registerables } from 'chart.js';
 import { Subscription } from 'rxjs';
+import { addIcons } from 'ionicons';
+import { notifications } from 'ionicons/icons';
 
 Chart.register(...registerables);
 
@@ -33,7 +40,10 @@ Chart.register(...registerables);
     IonGrid,
     IonRow,
     IonCol,
-    IonSpinner
+    IonSpinner,
+    IonIcon,
+    IonButton,
+    IonBadge
   ],
 })
 export class DashboardPage implements OnInit, AfterViewInit, OnDestroy, ViewWillEnter {
@@ -42,6 +52,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy, ViewWill
   
   dashboardData: DashboardData | null = null;
   isLoading = true;
+  unreadCount = signal<number>(0);
   
   private ridesChart: Chart | null = null;
   private assignedOrdersChart: Chart | null = null;
@@ -49,12 +60,17 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy, ViewWill
   private readonly MAX_CHART_ATTEMPTS = 10;
   private isDestroyed = false;
   private themeSubscription?: Subscription;
+  private notificationsSubscription?: Subscription;
 
   constructor(
     private dashboardService: DashboardService,
     private themeService: ThemeService,
+    private notificationsService: NotificationsService,
+    private router: Router,
     private cdr: ChangeDetectorRef
-  ) {}
+  ) {
+    addIcons({ notifications });
+  }
 
   ngOnInit() {
     this.loadDashboardData();
@@ -66,6 +82,11 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy, ViewWill
           this.updateChartColors();
         }
       }, 150);
+    });
+    
+    // Subscribe to notifications to update unread count
+    this.notificationsSubscription = this.notificationsService.getNotifications().subscribe(() => {
+      this.unreadCount.set(this.notificationsService.getUnreadCount());
     });
   }
 
@@ -87,6 +108,9 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy, ViewWill
     if (this.themeSubscription) {
       this.themeSubscription.unsubscribe();
     }
+    if (this.notificationsSubscription) {
+      this.notificationsSubscription.unsubscribe();
+    }
     if (this.ridesChart) {
       this.ridesChart.destroy();
       this.ridesChart = null;
@@ -95,6 +119,10 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy, ViewWill
       this.assignedOrdersChart.destroy();
       this.assignedOrdersChart = null;
     }
+  }
+
+  openNotifications() {
+    this.router.navigate(['/tabs/notification']);
   }
 
   loadDashboardData() {

@@ -92,38 +92,69 @@
 
             <!-- Action Buttons -->
             <div class="action-buttons">
-              <ion-button 
-                expand="block" 
-                color="danger" 
-                (click)="rejectRide()"
-                [disabled]="isUpdatingStatus"
-                [class.button-disabled]="!isOnline"
-                class="reject-btn">
-                @if (isUpdatingStatus) {
-                  <ion-spinner name="crescent"></ion-spinner>
-                } @else {
-                  <ion-icon name="close-circle-outline" slot="start"></ion-icon>
-                  Reject
-                }
-              </ion-button>
-              <ion-button 
-                expand="block" 
-                color="success" 
-                (click)="acceptRide()"
-                [disabled]="isUpdatingStatus"
-                [class.button-disabled]="!isOnline"
-                class="accept-btn">
-                @if (isUpdatingStatus) {
-                  <ion-spinner name="crescent"></ion-spinner>
-                } @else {
-                  <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
-                  Accept
-                }
-              </ion-button>
+              @if (isRideAccepted()) {
+                <!-- Start Ride Button (shown after acceptance) -->
+                <ion-button 
+                  expand="block" 
+                  color="primary" 
+                  (click)="startRide()"
+                  [disabled]="!isOnline"
+                  [class.button-disabled]="!isOnline"
+                  class="start-ride-btn">
+                  <ion-icon name="play-circle-outline" slot="start"></ion-icon>
+                  Start Ride
+                </ion-button>
+              } @else {
+                <!-- Accept/Reject Buttons (shown before acceptance) -->
+                <ion-button 
+                  expand="block" 
+                  color="danger" 
+                  (click)="rejectRide()"
+                  [disabled]="isUpdatingStatus"
+                  [class.button-disabled]="!isOnline"
+                  class="reject-btn">
+                  @if (isUpdatingStatus) {
+                    <ion-spinner name="crescent"></ion-spinner>
+                  } @else {
+                    <ion-icon name="close-circle-outline" slot="start"></ion-icon>
+                    Reject
+                  }
+                </ion-button>
+                <ion-button 
+                  expand="block" 
+                  color="success" 
+                  (click)="acceptRide()"
+                  [disabled]="isUpdatingStatus"
+                  [class.button-disabled]="!isOnline"
+                  class="accept-btn">
+                  @if (isUpdatingStatus) {
+                    <ion-spinner name="crescent"></ion-spinner>
+                  } @else {
+                    <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
+                    Accept
+                  }
+                </ion-button>
+              }
             </div>
           </div>
         </ion-card-content>
         }
+      </ion-card>
+    </div>
+  } @else {
+    <!-- No Pending Bookings Message -->
+    <div class="ride-details-card">
+      <ion-card>
+        <ion-card-content>
+          <div class="no-bookings-container" style="text-align: center; padding: 3rem 2rem;">
+            <ion-icon name="calendar-outline" style="font-size: 4rem; color: var(--ion-color-medium); margin-bottom: 1rem;"></ion-icon>
+            <h3 style="margin: 0.5rem 0; color: var(--ion-color-dark);">No Pending Bookings</h3>
+            <p style="margin: 0.5rem 0; color: var(--ion-color-medium); line-height: 1.5;">
+              You don't have any pending ride requests at the moment. 
+              New bookings will appear here when available.
+            </p>
+          </div>
+        </ion-card-content>
       </ion-card>
     </div>
   }

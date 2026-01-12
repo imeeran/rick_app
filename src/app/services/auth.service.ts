@@ -3,6 +3,7 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, BehaviorSubject, throwError } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
+import { OneSignalService } from './onesignal.service';
 
 export interface LoginRequest {
   rick: string;
@@ -50,8 +51,12 @@ export class AuthService {
   private rickKey = 'user_rick';
   private passwordKey = 'user_password';
   private userKey = 'current_user';
+  private driverIdKey = 'driver_id';
 
-  constructor(private http: HttpClient) {
+  constructor(
+    private http: HttpClient,
+    private oneSignalService: OneSignalService
+  ) {
     // Re-authenticate user on app start if credentials exist
     this.initializeAuth();
   }
@@ -104,6 +109,18 @@ export class AuthService {
   }
 
   /**
+   * Get stored driver ID
+   */
+  getStoredDriverId(): number | null {
+    const driverIdStr = localStorage.getItem(this.driverIdKey);
+    if (driverIdStr) {
+      const driverId = parseInt(driverIdStr, 10);
+      return isNaN(driverId) ? null : driverId;
+    }
+    return null;
+  }
+
+  /**
    * Logout user - clears all stored credentials and user data
    */
   logout(): void {
@@ -122,6 +139,20 @@ export class AuthService {
     if (response.data?.driver) {
       this.currentUserSubject.next(response.data.driver);
       this.saveUserToStorage(response.data.driver);
+      // Save driver ID to localStorage
+      if (response.data.driver.id) {
+        localStorage.setItem(this.driverIdKey, response.data.driver.id.toString());
+      }
+
+      // Send OneSignal Player ID to backend after successful login
+      if (response.data?.driver?.id) {
+        const driverId = response.data.driver.id;
+        this.oneSignalService.getPushId().then((pushId: string | null) => {
+          if (pushId) {
+            this.oneSignalService.sendPushIdToBackend(driverId, pushId);
+          }
+        });
+      }
     }
   }
 
@@ -132,6 +163,7 @@ export class AuthService {
     localStorage.removeItem(this.rickKey);
     localStorage.removeItem(this.passwordKey);
     localStorage.removeItem(this.userKey);
+    localStorage.removeItem(this.driverIdKey);
     this.currentUserSubject.next(null);
   }
 

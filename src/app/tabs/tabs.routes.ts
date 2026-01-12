@@ -32,6 +32,11 @@ export const routes: Routes = [
           import('../notification/notification.page').then((m) => m.NotificationPage),
       },
       {
+        path: 'payslip',
+        loadComponent: () =>
+          import('../payslip/payslip.page').then((m) => m.PayslipPage),
+      },
+      {
         path: '',
         redirectTo: '/tabs/dashboard',
         pathMatch: 'full',

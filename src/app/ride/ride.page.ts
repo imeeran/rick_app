@@ -25,7 +25,9 @@ import {
   closeOutline,
   chevronDownOutline,
   chevronUpOutline,
-  listOutline
+  listOutline,
+  playCircleOutline,
+  calendarOutline
 } from 'ionicons/icons';
 import { Geolocation } from '@capacitor/geolocation';
 import { BookingsService, Booking } from '../services/bookings.service';
@@ -69,9 +71,9 @@ export class RidePage implements OnInit, AfterViewInit, OnDestroy, ViewDidEnter,
   isLoading = true;
   isMapReady = false;
   isLoadingBookings = false;
-  // Removed isRideAccepted - acceptance just updates status and hides card
   isUpdatingStatus = false; // Track if status update API call is in progress
   isRideCardMinimized = signal<boolean>(false); // Track if ride card is minimized
+  isRideAccepted = signal<boolean>(false); // Track if ride is accepted (shows Start Ride button)
 
   // Route animation
   private routePolyline: L.Polyline | null = null;
@@ -104,7 +106,9 @@ export class RidePage implements OnInit, AfterViewInit, OnDestroy, ViewDidEnter,
       'close-outline': closeOutline,
       'chevron-down-outline': chevronDownOutline,
       'chevron-up-outline': chevronUpOutline,
-      'list-outline': listOutline
+      'list-outline': listOutline,
+      'play-circle-outline': playCircleOutline,
+      'calendar-outline': calendarOutline
     });
   }
 
@@ -113,6 +117,8 @@ export class RidePage implements OnInit, AfterViewInit, OnDestroy, ViewDidEnter,
   }
 
   ionViewWillEnter() {
+    // Get online status from API when navigating to this tab
+    this.getOnlineStatus();
     // Load pending bookings when user navigates to this tab
     this.loadUpcomingRide();
   }
@@ -479,6 +485,8 @@ export class RidePage implements OnInit, AfterViewInit, OnDestroy, ViewDidEnter,
               passengerName: pendingBookings[0].passengerName
             };
             
+            // Reset accepted status for new ride
+            this.isRideAccepted.set(false);
             console.log('RidePage: Found pending ride:', this.upcomingRide);
             
             // Center map on pickup location and show route
@@ -499,6 +507,7 @@ export class RidePage implements OnInit, AfterViewInit, OnDestroy, ViewDidEnter,
           } else {
             console.log('RidePage: No pending bookings found');
             this.upcomingRide = null;
+            this.isRideAccepted.set(false);
           }
           
           this.isLoadingBookings = false;
@@ -511,28 +520,154 @@ export class RidePage implements OnInit, AfterViewInit, OnDestroy, ViewDidEnter,
       });
   }
 
-  toggleOnlineStatus() {
-    this.isOnline = !this.isOnline;
-    if (this.isOnline) {
-      this.watchPosition();
-      // Show static route if there's a pending ride
-      if (this.upcomingRide) {
-        this.showRoute(false);
-      }
-    } else {
-      // Stop watching position
-      if (this.watchId) {
-        Geolocation.clearWatch({ id: this.watchId });
-        this.watchId = null;
-      }
-      // Stop animation but keep the route visible
-      this.stopAnimation();
-      // Keep route polyline visible, just remove vehicle marker
-      if (this.vehicleMarker) {
-        this.map.removeLayer(this.vehicleMarker);
-        this.vehicleMarker = null;
-      }
+  getOnlineStatus() {
+    // Get driver ID from localStorage (saved on login)
+    const driverId = this.authService.getStoredDriverId();
+    
+    if (!driverId) {
+      console.error('RidePage: Driver ID not found. Cannot fetch online status.');
+      return;
     }
+    
+    // Prepare request body
+    const requestBody = {
+      id: driverId
+    };
+    
+    console.log('Fetching driver online status:', requestBody);
+    
+    // Call API to get online status
+    this.http.post<{ success: boolean; data: { id: number; online: boolean }; message: string }>(`${this.apiUrl}/app/drivers/get-online-status`, requestBody)
+      .pipe(
+        catchError((error: HttpErrorResponse | Error) => {
+          let errorMessage = 'Failed to get online status';
+          
+          if (error instanceof Error) {
+            errorMessage = error.message;
+          } else if (error.error instanceof ErrorEvent) {
+            errorMessage = `Error: ${error.error.message}`;
+          } else {
+            const apiError = error.error as { message?: string };
+            errorMessage = apiError?.message || error.message || `Error Code: ${error.status}\nMessage: ${error.message}`;
+          }
+          
+          console.error('RidePage: Get online status API Error:', errorMessage);
+          // Don't show alert for this - just log the error and use default offline status
+          return throwError(() => new Error(errorMessage));
+        })
+      )
+      .subscribe({
+        next: (response) => {
+          console.log('RidePage: Online status received', response);
+          
+          // Update local status based on API response
+          // Response format: { success: true, data: { id: number, online: boolean }, message: string }
+          let onlineStatus = false;
+          
+          if (response && response.success && response.data && typeof response.data.online === 'boolean') {
+            onlineStatus = response.data.online;
+          } else {
+            console.warn('RidePage: Unexpected response format for online status', response);
+          }
+          
+          this.isOnline = onlineStatus;
+          console.log('RidePage: Updated online status to:', this.isOnline);
+          
+          // Start/stop position watching based on status
+          if (this.isOnline) {
+            this.watchPosition();
+          } else {
+            if (this.watchId) {
+              Geolocation.clearWatch({ id: this.watchId });
+              this.watchId = null;
+            }
+            this.stopAnimation();
+            if (this.vehicleMarker) {
+              this.map?.removeLayer(this.vehicleMarker);
+              this.vehicleMarker = null;
+            }
+          }
+        },
+        error: (error) => {
+          console.error('RidePage: Failed to get online status:', error);
+          // Default to offline if API call fails
+          this.isOnline = false;
+        }
+      });
+  }
+
+  toggleOnlineStatus() {
+    // Toggle online/offline status
+    const newOnlineStatus = !this.isOnline;
+    
+    // Get driver ID from localStorage (saved on login)
+    const driverId = this.authService.getStoredDriverId();
+    
+    if (!driverId) {
+      console.error('RidePage: Driver ID not found. Please login again.');
+      alert('Driver ID not found. Please login again.');
+      return;
+    }
+    
+    // Prepare request body
+    const requestBody = {
+      id: driverId,
+      online: newOnlineStatus
+    };
+    
+    console.log('Updating driver online status:', requestBody);
+    
+    // Call API to update online status
+    this.http.post<{ success?: boolean; message?: string }>(`${this.apiUrl}/app/drivers/update-online`, requestBody)
+      .pipe(
+        catchError((error: HttpErrorResponse | Error) => {
+          let errorMessage = 'Failed to update online status';
+          
+          if (error instanceof Error) {
+            errorMessage = error.message;
+          } else if (error.error instanceof ErrorEvent) {
+            errorMessage = `Error: ${error.error.message}`;
+          } else {
+            const apiError = error.error as { message?: string };
+            errorMessage = apiError?.message || error.message || `Error Code: ${error.status}\nMessage: ${error.message}`;
+          }
+          
+          console.error('RidePage: Update online status API Error:', errorMessage);
+          alert(`Failed to update online status: ${errorMessage}`);
+          return throwError(() => new Error(errorMessage));
+        })
+      )
+      .subscribe({
+        next: (response) => {
+          console.log('RidePage: Online status updated successfully', response);
+          
+          // Update local status only after successful API call
+          this.isOnline = newOnlineStatus;
+          
+          if (this.isOnline) {
+            // Start watching position when going online
+            this.watchPosition();
+          } else {
+            // Stop watching position when going offline
+            if (this.watchId) {
+              Geolocation.clearWatch({ id: this.watchId });
+              this.watchId = null;
+            }
+            // Stop any animation
+            this.stopAnimation();
+            // Remove vehicle marker if exists
+            if (this.vehicleMarker) {
+              this.map?.removeLayer(this.vehicleMarker);
+              this.vehicleMarker = null;
+            }
+          }
+        },
+        error: (error) => {
+          console.error('RidePage: Failed to update online status:', error);
+          // Don't update local status if API call failed
+          // Error already handled in catchError
+        }
+      });
   }
 
   async showRoute(animate: boolean = false) {
@@ -608,8 +743,13 @@ export class RidePage implements OnInit, AfterViewInit, OnDestroy, ViewDidEnter,
     const bounds = L.latLngBounds(this.routeCoordinates);
     this.map.fitBounds(bounds, { padding: [50, 50] });
 
-    // Stop any existing animation (animation will start when driver actually starts the ride)
-    this.stopAnimation();
+    // Start vehicle animation only if animate is true (when Start Ride is clicked)
+    if (animate && this.isOnline) {
+      this.startVehicleAnimation();
+    } else {
+      // Stop any existing animation
+      this.stopAnimation();
+    }
   }
 
   generateRoutePoints(start: { lat: number; lng: number }, end: { lat: number; lng: number }): L.LatLng[] {
@@ -786,29 +926,11 @@ export class RidePage implements OnInit, AfterViewInit, OnDestroy, ViewDidEnter,
           console.log('RidePage: Ride accepted successfully', response);
           this.isUpdatingStatus = false;
           
-          // Hide the ride request card after acceptance
-          // Driver has accepted one ride, so hide the card
-          this.upcomingRide = null;
+          // Mark ride as accepted - this will show the "Start Ride" button
+          this.isRideAccepted.set(true);
           
-          // Clear route and markers from map
-          this.stopAnimation();
-          if (this.routePolyline) {
-            this.map?.removeLayer(this.routePolyline);
-            this.routePolyline = null;
-          }
-          if (this.vehicleMarker) {
-            this.map?.removeLayer(this.vehicleMarker);
-            this.vehicleMarker = null;
-          }
-          
-          // Clear all markers (pickup/dropoff)
-          if (this.map) {
-            this.map.eachLayer((layer) => {
-              if (layer instanceof L.Marker) {
-                this.map.removeLayer(layer);
-              }
-            });
-          }
+          // Keep the ride card visible but show Start Ride button instead of Accept/Reject
+          // Don't hide the card or clear the route - just change the button
         },
         error: (error) => {
           console.error('RidePage: Failed to accept ride:', error);
@@ -828,6 +950,25 @@ export class RidePage implements OnInit, AfterViewInit, OnDestroy, ViewDidEnter,
     this.router.navigate(['/tabs/bookings'], {
       queryParams: { segment: 'pending' }
     });
+  }
+
+  startRide() {
+    if (!this.upcomingRide || !this.isOnline) {
+      if (!this.isOnline) {
+        alert('Please go online to start the ride.');
+      }
+      return;
+    }
+
+    console.log('Starting ride:', this.upcomingRide.id);
+    
+    // Show route with animation
+    if (this.isMapReady && this.map) {
+      this.showRoute(true); // true = show animation
+    }
+    
+    // Hide the ride card after starting (or you can keep it visible with ride details)
+    // For now, let's keep it visible but you can change this behavior
   }
 
   rejectRide() {

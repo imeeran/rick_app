@@ -4,12 +4,14 @@
 
 export const environment = {
   production: false,
-  apiUrl: 'http://localhost:3000/api', // Direct URL (bypasses proxy)
-  backendUrl: 'http://localhost:3000'
+  // apiUrl: 'http://localhost:3000/api', // Direct URL (bypasses proxy)
+  // backendUrl: 'http://localhost:3000',
   // apiUrl: 'http://13.61.16.44:3000/api',
   // backendUrl: 'http://13.61.16.44:3000'
-  // apiUrl: 'https://api.ricklimo.com/api',
-  // backendUrl: 'https://api.ricklimo.com'// Development API URL - update with your actual API endpoint
+  apiUrl: 'https://api.ricklimo.com/api',
+  backendUrl: 'https://api.ricklimo.com', // Development API URL - update with your actual API endpoint
+  // oneSignalAppId: '5800a0b8-0487-430e-a224-1553d4d6b5ef'
+  oneSignalAppId: '43ed9db3-041f-4e34-a9fb-af840c7aa15e'
 };
 
 /*

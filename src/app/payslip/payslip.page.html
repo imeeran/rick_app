@@ -1,0 +1,95 @@
+<ion-content [fullscreen]="true">
+  <div class="payslip-container">
+    <div class="payslip-header">
+      <h1>Payslip</h1>
+    </div>
+
+    <ion-card>
+      <ion-card-content>
+        <ion-toast
+          [isOpen]="toastOpen()"
+          [message]="toastMessage()"
+          [color]="toastColor()"
+          [buttons]="toastButtons()"
+          position="top"
+          [duration]="2200"
+          (didDismiss)="onToastDidDismiss()"
+          [style.--offset-top.px]="toastOffsetTopPx()"
+        ></ion-toast>
+
+        @if (isLoadingPayslips()) {
+          <ion-item lines="none">
+            <ion-label>
+              <p>Loading payslips...</p>
+            </ion-label>
+          </ion-item>
+        } @else if (payslipError()) {
+          <ion-item lines="none">
+            <ion-label>
+              <p style="color: var(--ion-color-danger);">{{ payslipError() }}</p>
+            </ion-label>
+          </ion-item>
+        } @else if (payslips().length === 0) {
+          <ion-item lines="none">
+            <ion-label>
+              <p>No payslips available</p>
+            </ion-label>
+          </ion-item>
+        } @else {
+          <div class="payslip-list">
+            @for (payslip of payslips(); track payslip.id || (payslip.month_name || '') + (payslip.year || '')) {
+              <ion-card 
+                class="payslip-card"
+                [class.payslip-card-downloaded]="isPayslipDownloaded(payslip)"
+                [class.payslip-card-downloading]="isDownloadingPayslip(payslip)"
+                (click)="!isPayslipDownloaded(payslip) && !isDownloadingPayslip(payslip) && downloadPayslipPDF($event, payslip)">
+                <ion-card-content>
+                  <div class="payslip-card-content">
+                    <div class="payslip-icon-wrapper">
+                      <ion-icon 
+                        [name]="isPayslipDownloaded(payslip) ? 'checkmark-circle' : 'document-text'" 
+                        class="payslip-icon"
+                        [class.icon-downloaded]="isPayslipDownloaded(payslip)"></ion-icon>
+                    </div>
+                    <div class="payslip-info">
+                      <div class="payslip-title">{{ payslip.month_name }} {{ payslip.year }}</div>
+                      <div class="payslip-balance">
+                        <span class="balance-label">Opening Balance:</span>
+                        <span class="balance-value">{{ formatAmount(payslip.obopm ?? payslip.gross) }}</span>
+                      </div>
+                    </div>
+                    <div class="payslip-action">
+                      @if (isDownloadingPayslip(payslip)) {
+                        <ion-spinner name="crescent" class="payslip-spinner"></ion-spinner>
+                      } @else if (isPayslipDownloaded(payslip)) {
+                        <ion-button 
+                          size="small" 
+                          color="success" 
+                          fill="solid"
+                          class="payslip-open-btn"
+                          (click)="openPayslip(payslip, $event)">
+                          <ion-icon name="open-outline" slot="start"></ion-icon>
+                          Open
+                        </ion-button>
+                      } @else {
+                        <ion-button 
+                          size="small" 
+                          color="primary" 
+                          fill="outline"
+                          class="payslip-download-btn">
+                          <ion-icon name="download-outline" slot="start"></ion-icon>
+                          Download
+                        </ion-button>
+                      }
+                    </div>
+                  </div>
+                </ion-card-content>
+              </ion-card>
+            }
+          </div>
+        }
+      </ion-card-content>
+    </ion-card>
+  </div>
+</ion-content>
+
