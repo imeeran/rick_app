@@ -13,6 +13,7 @@ import {
 import { AlertController } from '@ionic/angular/standalone';
 import { PayslipService, Payslip } from '../services/payslip.service';
 import { PayslipPdfService } from '../profile/payslip-pdf.service';
+import { AuthService } from '../services/auth.service';
 import { Capacitor } from '@capacitor/core';
 import { App } from '@capacitor/app';
 import { Filesystem, Directory } from '@capacitor/filesystem';
@@ -26,6 +27,7 @@ import {
   openOutline
 } from 'ionicons/icons';
 import { ViewWillEnter } from '@ionic/angular';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-payslip',
@@ -55,11 +57,14 @@ export class PayslipPage implements OnInit, OnDestroy, ViewWillEnter {
   toastOffsetTopPx = signal<number>(12);
   toastButtons = signal<any[]>([{ text: 'OK', role: 'cancel' }]);
   private appStateListener?: any;
+  private userSubscription?: Subscription;
+  private currentUserId: number | null = null;
 
   constructor(
     private payslipService: PayslipService,
     private payslipPdfService: PayslipPdfService,
-    private alertController: AlertController
+    private alertController: AlertController,
+    private authService: AuthService
   ) {
     addIcons({ 
       documentText, 
@@ -70,6 +75,26 @@ export class PayslipPage implements OnInit, OnDestroy, ViewWillEnter {
   }
 
   ngOnInit(): void {
+    // Initialize current user ID
+    const currentUser = this.authService.getCurrentUserValue();
+    this.currentUserId = currentUser?.id ?? null;
+
+    // Subscribe to user changes to reset downloaded payslips when user changes
+    this.userSubscription = this.authService.currentUser$.subscribe(user => {
+      const newUserId = user?.id ?? null;
+      // If user changed (including logout where user becomes null), reset downloaded payslips
+      if (this.currentUserId !== newUserId) {
+        this.currentUserId = newUserId;
+        // Reset downloaded payslip keys when user changes
+        this.downloadedPayslipKeys.set(new Set());
+        // If a new user logged in, refresh the payslips list
+        if (newUserId !== null) {
+          this.loadPayslips();
+          void this.refreshDownloadedPayslips();
+        }
+      }
+    });
+
     // Load payslips
     this.loadPayslips();
     // Restore downloaded status for list
@@ -94,6 +119,8 @@ export class PayslipPage implements OnInit, OnDestroy, ViewWillEnter {
     if (this.appStateListener) {
       void this.appStateListener.remove();
     }
+    // Unsubscribe from user changes
+    this.userSubscription?.unsubscribe();
   }
 
   ionViewWillEnter(): void {

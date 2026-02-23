@@ -15,6 +15,7 @@ import {
 } from '@ionic/angular/standalone';
 import { ThemeService, Theme } from '../services/theme.service';
 import { AuthService, Driver } from '../services/auth.service';
+import { PayslipService } from '../services/payslip.service';
 import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { addIcons } from 'ionicons';
@@ -60,6 +61,7 @@ export class ProfilePage implements OnInit, OnDestroy {
   constructor(
     private themeService: ThemeService,
     private authService: AuthService,
+    private payslipService: PayslipService,
     private router: Router
   ) {
     addIcons({ 
@@ -163,7 +165,10 @@ export class ProfilePage implements OnInit, OnDestroy {
     }
   }
 
-  onLogout(): void {
+  async onLogout(): Promise<void> {
+    // Clear downloaded payslip files before logging out
+    // This prevents files from previous users from being shown to new users
+    await this.payslipService.clearDownloadedPayslips();
     this.authService.logout();
     this.router.navigate(['/login']);
   }

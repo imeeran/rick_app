@@ -169,12 +169,12 @@ export class PayslipPdfService {
     doc.setFont('helvetica', 'normal');
     
     // Center the footer text
-    const footerText1 = 'Thank you for your business, Feel free to contact us at anytime/+97124467696';
+    const footerText1 = 'Thank you for your business, Feel free to contact us at +97124467696 anytime.';
     const footerText1Width = doc.getTextWidth(footerText1);
     const footerText1X = (pageWidth - footerText1Width) / 2;
     doc.text(footerText1, footerText1X, finalY);
     
-    const footerText2 = 'user1-Sajid/user2-Shakeel/Poweredbyricklimo/2024/2025';
+    const footerText2 = 'www.ricklimo.com';
     const footerText2Width = doc.getTextWidth(footerText2);
     const footerText2X = (pageWidth - footerText2Width) / 2;
     doc.text(footerText2, footerText2X, finalY + 6);

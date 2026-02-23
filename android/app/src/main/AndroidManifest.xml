@@ -27,6 +27,18 @@
             android:grantUriPermissions="true">
             <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/file_paths" />
         </provider>
+
+        <!-- OneSignal Notification Icon Configuration -->
+        <meta-data
+            android:name="com.onesignal.messaging.default_notification_icon"
+            android:resource="@drawable/ic_stat_onesignal_default" />
+        <meta-data
+            android:name="com.onesignal.messaging.default_notification_large_icon"
+            android:resource="@drawable/ic_stat_onesignal_default" />
+        <!-- Notification Accent Color (for small icon tinting) -->
+        <meta-data
+            android:name="com.onesignal.NotificationAccentColor.DEFAULT"
+            android:value="FF0A2463" />
     </application>
 
     <!-- Permissions -->

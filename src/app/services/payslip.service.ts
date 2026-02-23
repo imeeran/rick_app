@@ -4,6 +4,8 @@ import { Observable, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 import { AuthService } from './auth.service';
+import { Capacitor } from '@capacitor/core';
+import { Filesystem, Directory } from '@capacitor/filesystem';
 
 export interface PayslipTransaction {
   type: 'CR' | 'DR';
@@ -125,5 +127,60 @@ export class PayslipService {
     console.error('Payslip API Error:', errorMessage);
     return throwError(() => new Error(errorMessage));
   };
+
+  /**
+   * Clear all downloaded payslip files from the filesystem
+   * This should be called when a user logs out to prevent files from previous users
+   * from being shown to new users
+   */
+  async clearDownloadedPayslips(): Promise<void> {
+    if (!Capacitor.isNativePlatform()) {
+      // On web platform, there's no filesystem to clear
+      return;
+    }
+
+    try {
+      const folder = 'payslips';
+      const dir = Directory.Documents;
+
+      // Try to read the directory to get all files
+      try {
+        const result = await Filesystem.readdir({ path: folder, directory: dir });
+        const files = (result.files ?? []).map((f: any) => (typeof f === 'string' ? f : f?.name)).filter(Boolean) as string[];
+
+        // Delete all PDF files in the payslips folder
+        for (const file of files) {
+          if (file.toLowerCase().endsWith('.pdf')) {
+            try {
+              await Filesystem.deleteFile({
+                path: `${folder}/${file}`,
+                directory: dir,
+              });
+            } catch (deleteError) {
+              console.warn(`Failed to delete payslip file ${file}:`, deleteError);
+              // Continue deleting other files even if one fails
+            }
+          }
+        }
+
+        // Try to remove the empty folder (optional, may fail if not empty or on some platforms)
+        try {
+          await Filesystem.rmdir({
+            path: folder,
+            directory: dir,
+            recursive: false,
+          });
+        } catch {
+          // Ignore errors when removing folder - it's okay if it doesn't exist or can't be removed
+        }
+      } catch (readError) {
+        // Folder doesn't exist or can't be read - that's fine, nothing to clear
+        console.log('Payslips folder does not exist or cannot be read:', readError);
+      }
+    } catch (error) {
+      console.error('Error clearing downloaded payslips:', error);
+      // Don't throw - we don't want logout to fail if file clearing fails
+    }
+  }
 }
 

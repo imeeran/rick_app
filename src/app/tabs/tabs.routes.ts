@@ -22,6 +22,10 @@ export const routes: Routes = [
           import('../ride/ride.page').then((m) => m.RidePage),
       },
       {
+        path: 'ride-no-map',
+        loadComponent: () => import('../ride-no-map/ride-no-map.page').then( m => m.RideNoMapPage)
+      },
+      {
         path: 'profile',
         loadComponent: () =>
           import('../profile/profile.page').then((m) => m.ProfilePage),

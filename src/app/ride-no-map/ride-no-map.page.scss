@@ -1,0 +1,564 @@
+ion-content {
+  --padding-start: 0;
+  --padding-end: 0;
+  --padding-top: 0;
+  --padding-bottom: 0;
+  position: relative;
+  height: 100%;
+}
+
+.map-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  display: block;
+}
+
+.map {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100% !important;
+  height: 100% !important;
+  z-index: 1;
+  display: block;
+
+  &.hidden {
+    display: none;
+  }
+}
+
+// Ensure Leaflet map tiles render properly
+::ng-deep .leaflet-container {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 100%;
+  background: #e5e5e5;
+}
+
+::ng-deep .leaflet-tile-container {
+  width: 100%;
+  height: 100%;
+}
+
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--ion-background-color, #fff);
+  z-index: 10;
+
+  p {
+    margin-top: 16px;
+    color: var(--ion-color-medium);
+  }
+}
+
+// Online/Offline Toggle Button
+.online-toggle-container {
+  position: absolute;
+  /* Push below status bar / notch */
+  top: calc(env(safe-area-inset-top) + 12px);
+  right: 16px;
+  z-index: 1000;
+}
+
+/* Push Leaflet controls (zoom) below status bar / notch */
+::ng-deep .leaflet-top {
+  top: calc(env(safe-area-inset-top) + 12px) !important;
+}
+
+.online-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 18px;
+  border: none;
+  border-radius: 30px;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(12px);
+  background: rgba(0, 0, 0, 0.75);
+  color: #ffffff !important;
+  min-width: 120px;
+  justify-content: center;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+
+  &:active {
+    transform: scale(0.95);
+  }
+
+  .toggle-indicator {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.4);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4);
+    flex-shrink: 0;
+  }
+
+  .toggle-label {
+    font-weight: 600;
+    transition: all 0.3s ease;
+    color: #ffffff !important;
+  }
+
+  &.online {
+    background: linear-gradient(135deg, #2dd36f 0%, #28ba62 100%);
+    box-shadow: 0 4px 16px rgba(45, 211, 111, 0.4);
+    color: #ffffff !important;
+
+    .toggle-label {
+      color: #ffffff !important;
+    }
+
+    .toggle-indicator {
+      background: rgba(255, 255, 255, 0.95);
+      box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.2), 0 0 12px rgba(255, 255, 255, 0.4);
+      animation: pulse 2s ease-in-out infinite;
+    }
+  }
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+
+    &.online {
+      box-shadow: 0 6px 20px rgba(45, 211, 111, 0.5);
+    }
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.2), 0 0 12px rgba(255, 255, 255, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.1), 0 0 16px rgba(255, 255, 255, 0.5);
+  }
+}
+
+// Vehicle Animation Marker
+::ng-deep .vehicle-marker {
+  background: transparent;
+  border: none;
+  text-align: center;
+}
+
+::ng-deep .vehicle-icon {
+  font-size: 32px;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+  animation: bounce 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes bounce {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-5px);
+  }
+}
+
+// Offline Alert Banner
+.offline-alert {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background: rgba(255, 193, 7, 0.1);
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  border-radius: 8px;
+  color: #856404;
+  font-size: 0.9rem;
+  line-height: 1.4;
+
+  ion-icon {
+    font-size: 1.5rem;
+    color: #ffc107;
+    flex-shrink: 0;
+  }
+
+  span {
+    flex: 1;
+  }
+}
+
+// Ride Details Card
+.ride-details-card {
+  position: absolute;
+  bottom: calc(56px + env(safe-area-inset-bottom)); // Position above tab bar (56px height) + safe area
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  padding: 12px;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.3), transparent);
+  pointer-events: none;
+  
+  // Show All Button
+  .show-all-btn {
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 6px 12px;
+    margin-bottom: 8px;
+    margin-left: auto;
+    margin-right: auto;
+    background: var(--ion-color-primary);
+    color: white;
+    border: none;
+    border-radius: 16px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    transition: all 0.2s ease;
+    width: fit-content;
+    
+    &:hover {
+      background: var(--ion-color-primary-shade);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+    
+    &:active {
+      transform: translateY(0);
+    }
+    
+    ion-icon {
+      font-size: 14px;
+    }
+  }
+
+  ion-card {
+    margin: 0;
+    border-radius: 12px;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.2);
+    pointer-events: auto;
+    margin-bottom: 0;
+    max-width: 98%;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  ion-card-header {
+    padding: 8px 14px 4px 14px;
+  }
+
+  .card-header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  ion-card-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--ion-color-primary);
+    margin: 0;
+    flex: 1;
+  }
+
+  .minimize-ride-btn {
+    background: transparent;
+    border: none;
+    padding: 4px 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    transition: background-color 0.2s;
+    color: var(--ion-color-medium);
+    margin-left: 8px;
+
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.05);
+    }
+
+    &:active {
+      background-color: rgba(0, 0, 0, 0.1);
+    }
+
+    ion-icon {
+      font-size: 20px;
+    }
+  }
+
+  ion-card.minimized {
+    ion-card-content {
+      display: none;
+    }
+    
+    // Smooth transition when minimizing
+    transition: all 0.3s ease;
+  }
+
+  ion-card {
+    transition: all 0.3s ease;
+  }
+
+  ion-card-content {
+    padding: 4px 14px 12px 14px;
+  }
+}
+
+.ride-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.passenger-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: var(--ion-color-light);
+  border-radius: 8px;
+
+  ion-icon {
+    font-size: 18px;
+    color: var(--ion-color-primary);
+    flex-shrink: 0;
+  }
+
+  .passenger-details {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .passenger-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ion-color-dark);
+    line-height: 1.2;
+  }
+
+  .ride-date {
+    font-size: 11px;
+    color: var(--ion-color-medium);
+    line-height: 1.1;
+  }
+}
+
+.location-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 10px;
+  background: var(--ion-color-light);
+  border-radius: 8px;
+  border-left: 3px solid;
+
+  &.pickup {
+    border-left-color: var(--ion-color-success);
+  }
+
+  &.dropoff {
+    border-left-color: var(--ion-color-danger);
+  }
+
+  .location-icon {
+    font-size: 16px;
+    margin-top: 2px;
+    flex-shrink: 0;
+
+    &.pickup {
+      color: var(--ion-color-success);
+    }
+
+    &.dropoff {
+      color: var(--ion-color-danger);
+    }
+  }
+
+  .location-details {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+    min-width: 0;
+
+    .location-label {
+      font-size: 9px;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: var(--ion-color-medium);
+      letter-spacing: 0.3px;
+      line-height: 1.1;
+    }
+
+    .location-text {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--ion-color-dark);
+      line-height: 1.2;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
+  }
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+  margin-top: 2px;
+
+  .button-disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  ion-button {
+    flex: 1;
+    --border-radius: 8px;
+    height: 36px;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: none;
+    margin: 0;
+
+    ion-icon {
+      font-size: 16px;
+      margin-right: 4px;
+    }
+  }
+
+  .reject-btn {
+    --background: var(--ion-color-danger);
+    --background-hover: var(--ion-color-danger-shade);
+  }
+
+  .accept-btn {
+    --background: var(--ion-color-success);
+    --background-hover: var(--ion-color-success-shade);
+  }
+}
+
+// Dark mode support
+@media (prefers-color-scheme: dark) {
+  .online-toggle-btn {
+    background: rgba(0, 0, 0, 0.85);
+    color: #ffffff !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+
+    .toggle-label {
+      color: #ffffff !important;
+    }
+
+    &.online {
+      background: linear-gradient(135deg, #2dd36f 0%, #28ba62 100%);
+      color: #ffffff !important;
+      box-shadow: 0 4px 16px rgba(45, 211, 111, 0.5);
+
+      .toggle-label {
+        color: #ffffff !important;
+      }
+    }
+  }
+
+  .ride-details-card {
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.6), transparent);
+  }
+}
+
+// Responsive adjustments for smaller screens
+@media (max-height: 700px) {
+  .ride-details-card {
+    padding: 8px;
+
+    ion-card-header {
+      padding: 10px 12px 6px 12px;
+    }
+
+    ion-card-title {
+      font-size: 15px;
+    }
+
+    ion-card-content {
+      padding: 6px 12px 12px 12px;
+    }
+
+    .ride-info {
+      gap: 8px;
+    }
+
+    .passenger-info {
+      padding: 8px 10px;
+
+      ion-icon {
+        font-size: 18px;
+      }
+
+      .passenger-name {
+        font-size: 13px;
+      }
+
+      .ride-date {
+        font-size: 11px;
+      }
+    }
+
+    .location-row {
+      padding: 8px 10px;
+
+      .location-icon {
+        font-size: 16px;
+      }
+
+      .location-details {
+        .location-label {
+          font-size: 9px;
+        }
+
+        .location-text {
+          font-size: 12px;
+        }
+      }
+    }
+
+    .action-buttons {
+      gap: 8px;
+      margin-top: 2px;
+
+      ion-button {
+        height: 40px;
+        font-size: 13px;
+
+        ion-icon {
+          font-size: 16px;
+        }
+      }
+    }
+  }
+}

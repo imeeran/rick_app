@@ -2,6 +2,7 @@ export const environment = {
   production: true,
   // apiUrl: 'http://13.61.16.44:3000/api',
   // backendUrl: 'http://13.61.16.44:3000',
+  
   apiUrl: 'https://api.ricklimo.com/api',
   backendUrl: 'https://api.ricklimo.com',
   // oneSignalAppId: '5800a0b8-0487-430e-a224-1553d4d6b5ef'
