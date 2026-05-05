@@ -88,8 +88,11 @@ export class LoginPage implements OnInit {
         },
         error: (error) => {
           this.isLoading = false;
-          // Set error message from API response
-          this.errorMessage = error.message || 'Login failed. Please try again.';
+          // Use user-friendly message - never show raw HTTP errors (e.g. "Http failure response... 0 Unknown Error")
+          const msg = error?.message || '';
+          this.errorMessage = (msg.includes('Http failure') || msg.includes('Unknown Error'))
+            ? 'Unable to connect. Please check your connection and try again.'
+            : (msg || 'Login failed. Please try again.');
           this.loginForm.setErrors({ apiError: true });
           this.loginForm.get('rick')?.markAsTouched();
           this.loginForm.get('password')?.markAsTouched();

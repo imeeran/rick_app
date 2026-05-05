@@ -463,6 +463,12 @@ ion-content {
     --background: var(--ion-color-success);
     --background-hover: var(--ion-color-success-shade);
   }
+
+  .complete-ride-btn {
+    flex: 1 1 100%;
+    --background: var(--ion-color-success);
+    --background-hover: var(--ion-color-success-shade);
+  }
 }
 
 // Dark mode support

@@ -5,7 +5,7 @@ export interface Booking {
   id: string;
   date: string; // Date in format: "YYYY-MM-DD" or ISO date string
   time: string; // Time in format: "HH:mm:ss" or "HH:mm"
-  status: 'pending' | 'completed' | 'cancelled';
+  status: 'pending' | 'in-progress' | 'completed' | 'cancelled';
   pickupLocation: string;
   dropoffLocation: string;
   passengerName: string;
@@ -22,7 +22,7 @@ export class BookingsService {
     return of([]);
   }
 
-  getBookingsByStatus(status: 'pending' | 'completed' | 'cancelled'): Observable<Booking[]> {
+  getBookingsByStatus(status: 'pending' | 'in-progress' | 'completed' | 'cancelled'): Observable<Booking[]> {
     // Return empty array - API is called from booking.page.ts
     return of([]);
   }

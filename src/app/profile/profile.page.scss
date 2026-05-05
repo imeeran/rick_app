@@ -565,3 +565,15 @@ ion-label p {
   }
 }
 
+.app-version-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  text-align: center;
+  padding: 1.5rem 1rem;
+  padding-bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));
+  font-size: 0.75rem;
+  color: var(--ion-color-medium);
+}
+

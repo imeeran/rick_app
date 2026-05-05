@@ -62,6 +62,8 @@ export class BookingPage implements OnInit, OnDestroy, AfterViewInit {
   selectedMonth = signal<string>('all');
   selectedYear = signal<string>('all');
   showAll = signal<boolean>(true);
+  /** When set from dashboard "Today's assigned" — extra filter in filterBookings */
+  dateScopeToday = signal<boolean>(false);
   
   allBookings: Booking[] = [];
   filteredBookings = signal<Booking[]>([]);
@@ -94,22 +96,50 @@ export class BookingPage implements OnInit, OnDestroy, AfterViewInit {
 
   ionViewWillEnter() {
     console.log('BookingPage: ionViewWillEnter() called - loading bookings');
-    
-    // Check for query parameter to set segment
-    this.route.queryParams.subscribe(params => {
-      if (params['segment'] && (params['segment'] === 'pending' || params['segment'] === 'completed' || params['segment'] === 'cancelled')) {
-        this.selectedSegment.set(params['segment']);
-        // Clear query params after reading
-        this.router.navigate([], {
-          relativeTo: this.route,
-          queryParams: {},
-          replaceUrl: true
-        });
-      }
-    });
-    
-    // Load bookings when user navigates to this tab
+    this.applyRouteQueryParams();
     this.loadBookings();
+  }
+
+  private applyRouteQueryParams(): void {
+    const qp = this.route.snapshot.queryParamMap;
+    const segment = qp.get('segment');
+    const scope = qp.get('scope');
+    let shouldClear = false;
+
+    this.dateScopeToday.set(false);
+
+    if (scope === 'today') {
+      this.selectedSegment.set('pending');
+      this.dateScopeToday.set(true);
+      const now = new Date();
+      this.selectedMonth.set(String(now.getMonth()));
+      this.selectedYear.set(String(now.getFullYear()));
+      this.showAll.set(false);
+      shouldClear = true;
+    } else if (scope === 'currentMonth') {
+      this.selectedSegment.set('pending');
+      const now = new Date();
+      this.selectedMonth.set(String(now.getMonth()));
+      this.selectedYear.set(String(now.getFullYear()));
+      this.showAll.set(false);
+      shouldClear = true;
+    } else if (segment === 'pending' || segment === 'completed' || segment === 'cancelled') {
+      this.selectedSegment.set(segment);
+      if (segment === 'completed' || segment === 'cancelled') {
+        this.selectedMonth.set('all');
+        this.selectedYear.set('all');
+        this.showAll.set(true);
+      }
+      shouldClear = true;
+    }
+
+    if (shouldClear) {
+      this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: {},
+        replaceUrl: true
+      });
+    }
   }
 
   ngAfterViewInit() {
@@ -323,6 +353,7 @@ export class BookingPage implements OnInit, OnDestroy, AfterViewInit {
   }
 
   segmentChanged(event: CustomEvent) {
+    this.dateScopeToday.set(false);
     this.selectedSegment.set(event.detail.value);
     this.filterBookings();
     // Update segment colors after change
@@ -332,6 +363,7 @@ export class BookingPage implements OnInit, OnDestroy, AfterViewInit {
   }
 
   monthChanged(event: CustomEvent) {
+    this.dateScopeToday.set(false);
     const value = event.detail.value;
     this.selectedMonth.set(value);
     this.showAll.set(value === 'all' && this.selectedYear() === 'all');
@@ -339,6 +371,7 @@ export class BookingPage implements OnInit, OnDestroy, AfterViewInit {
   }
 
   yearChanged(event: CustomEvent) {
+    this.dateScopeToday.set(false);
     const value = event.detail.value;
     this.selectedYear.set(value);
     this.showAll.set(value === 'all' && this.selectedMonth() === 'all');
@@ -368,6 +401,18 @@ export class BookingPage implements OnInit, OnDestroy, AfterViewInit {
       filtered = filtered.filter(booking => {
         const bookingDate = new Date(booking.date);
         return bookingDate.getMonth() === month;
+      });
+    }
+
+    if (this.dateScopeToday()) {
+      const today = new Date();
+      filtered = filtered.filter(booking => {
+        const d = new Date(booking.date);
+        return (
+          d.getFullYear() === today.getFullYear() &&
+          d.getMonth() === today.getMonth() &&
+          d.getDate() === today.getDate()
+        );
       });
     }
     

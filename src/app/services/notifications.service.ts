@@ -1,6 +1,10 @@
 import { Injectable } from '@angular/core';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, BehaviorSubject, of } from 'rxjs';
+import { map, catchError } from 'rxjs/operators';
 import { Platform } from '@ionic/angular';
+import { environment } from '../../environments/environment';
+import { AuthService } from './auth.service';
 
 export type NotificationType = 'order_assigned' | 'order_completed' | 'payslip_generated';
 
@@ -11,10 +15,21 @@ export interface Notification {
   message: string;
   timestamp: Date;
   read: boolean;
-  orderId?: string; // For order-related notifications
-  payslipMonth?: string; // For payslip notifications (e.g., "January 2024")
+  orderId?: string;
+  payslipMonth?: string;
   payslipYear?: number;
-  amount?: number; // For order completed and payslip notifications
+  amount?: number;
+  pickupDate?: string;
+  pickupTime?: string;
+  pickupAddress?: string;
+  dropoffAddress?: string;
+}
+
+export interface NotificationsApiResponse {
+  success?: boolean;
+  message?: string;
+  data?: { notifications?: Notification[] };
+  notifications?: Notification[];
 }
 
 @Injectable({
@@ -25,13 +40,72 @@ export class NotificationsService {
   public notifications$ = this.notificationsSubject.asObservable();
 
   private notifications: Notification[] = [];
+  private apiUrl = environment.apiUrl;
 
-  constructor(private platform: Platform) {
-    // Load notifications from localStorage or initialize with mock data
-    this.loadNotifications();
-    
-    // Set up OneSignal notification listeners
+  constructor(
+    private platform: Platform,
+    private http: HttpClient,
+    private authService: AuthService
+  ) {
+    this.fetchNotifications();
     this.setupOneSignalListeners();
+  }
+
+  /**
+   * Fetch notifications from API and update local state
+   */
+  fetchNotifications(): void {
+    const rick = this.authService.getCurrentUserValue()?.rick || this.authService.getStoredRick();
+    if (!rick) {
+      this.notifications = [];
+      this.notificationsSubject.next([]);
+      return;
+    }
+    this.http.post<NotificationsApiResponse>(`${this.apiUrl}/app/notifications`, { rick })
+      .pipe(
+        map(response => this.mapApiResponseToNotifications(response)),
+        catchError((err: HttpErrorResponse) => {
+          console.error('Fetch notifications API error:', err);
+          this.notifications = [];
+          this.notificationsSubject.next([]);
+          return of([]);
+        })
+      )
+      .subscribe(notifications => {
+        this.notifications = notifications;
+        this.notificationsSubject.next([...this.notifications]);
+      });
+  }
+
+  /**
+   * Map API response to Notification array
+   */
+  private mapApiResponseToNotifications(response: NotificationsApiResponse): Notification[] {
+    let list: any[] = [];
+    if (response.data?.notifications) {
+      list = response.data.notifications;
+    } else if (Array.isArray(response.notifications)) {
+      list = response.notifications;
+    }
+    return list.map((n: any) => {
+      const ts = n.timestamp ?? n.created_at ?? n.createdAt;
+      return {
+        id: n.id,
+        type: n.type || 'order_assigned',
+        title: n.title || 'Notification',
+        message: n.message || '',
+        timestamp: ts ? new Date(ts) : new Date(),
+        read: !!n.read,
+        orderId: n.orderId ?? n.order_id,
+        payslipMonth: n.payslipMonth ?? n.payslip_month,
+        payslipYear: n.payslipYear ?? n.payslip_year,
+        amount: n.amount,
+        pickupDate: n.pickupDate ?? n.pickup_date,
+        pickupTime: n.pickupTime ?? n.pickup_time,
+        pickupAddress: n.pickup ?? n.pickupAddress ?? n.pickup_address ?? n.pickup_location ?? n.pickupLocation,
+        dropoffAddress: n.dropoff ?? n.dropoffAddress ?? n.dropoff_address ?? n.dropoff_location ?? n.dropoffLocation
+      };
+    });
   }
 
   /**
@@ -49,7 +123,7 @@ export class NotificationsService {
   }
 
   /**
-   * Add a new notification
+   * Add a new notification (e.g. from OneSignal push)
    */
   addNotification(notification: Omit<Notification, 'id' | 'timestamp' | 'read'>): void {
     const newNotification: Notification = {
@@ -59,190 +133,111 @@ export class NotificationsService {
       read: false
     };
 
-    this.notifications.unshift(newNotification); // Add to beginning
-    this.saveNotifications();
+    this.notifications.unshift(newNotification);
     this.notificationsSubject.next([...this.notifications]);
   }
 
   /**
-   * Mark notification as read
+   * Mark notification as read (local + API)
    */
   markAsRead(notificationId: string): void {
     const notification = this.notifications.find(n => n.id === notificationId);
     if (notification) {
       notification.read = true;
-      this.saveNotifications();
       this.notificationsSubject.next([...this.notifications]);
+      this.markAsReadApi(notificationId);
     }
   }
 
   /**
-   * Mark all notifications as read
+   * Call backend API to mark notification as read
+   */
+  private markAsReadApi(notificationId: string): void {
+    const rick = this.authService.getCurrentUserValue()?.rick || this.authService.getStoredRick();
+    if (!rick) {
+      console.warn('Rick ID not found, skipping mark-read API call');
+      return;
+    }
+    this.http.post(`${this.apiUrl}/app/notifications/mark-read`, {
+      rick,
+      notification_id: notificationId
+    }).subscribe({
+      next: () => {},
+      error: (err) => console.error('Mark read API error:', err)
+    });
+  }
+
+  /**
+   * Mark all notifications as read (local + API)
    */
   markAllAsRead(): void {
     this.notifications.forEach(n => n.read = true);
-    this.saveNotifications();
     this.notificationsSubject.next([...this.notifications]);
+    this.markAllAsReadApi();
   }
 
   /**
-   * Delete a notification
+   * Call backend API to mark all notifications as read
    */
-  deleteNotification(notificationId: string): void {
-    this.notifications = this.notifications.filter(n => n.id !== notificationId);
-    this.saveNotifications();
-    this.notificationsSubject.next([...this.notifications]);
+  private markAllAsReadApi(): void {
+    const rick = this.authService.getCurrentUserValue()?.rick || this.authService.getStoredRick();
+    if (!rick) {
+      console.warn('Rick ID not found, skipping mark-all-read API call');
+      return;
+    }
+    this.http.post(`${this.apiUrl}/app/notifications/mark-read`, {
+      rick,
+      mark_all: true
+    }).subscribe({
+      next: () => {},
+      error: (err) => console.error('Mark all read API error:', err)
+    });
   }
 
   /**
-   * Clear all notifications
+   * Clear all notifications (local + API)
    */
   clearAll(): void {
     this.notifications = [];
-    localStorage.removeItem('notifications'); // Clear localStorage
     this.notificationsSubject.next([]);
-    // Regenerate mock data for testing
-    setTimeout(() => {
-      this.generateMockNotifications();
-    }, 100);
+    this.deleteNotificationsApi({ clear_all: true }, () => this.fetchNotifications());
   }
 
   /**
-   * Clear all read notifications
+   * Clear all read notifications (local + API)
    */
   clearRead(): void {
     this.notifications = this.notifications.filter(n => !n.read);
-    // If all notifications were cleared, regenerate mock data
-    if (this.notifications.length === 0) {
-      localStorage.removeItem('notifications');
-      // Regenerate mock data for testing
-      setTimeout(() => {
-        this.generateMockNotifications();
-      }, 100);
-    } else {
-      this.saveNotifications();
-    }
     this.notificationsSubject.next([...this.notifications]);
+    this.deleteNotificationsApi({ clear_read: true }, () => this.fetchNotifications());
   }
 
   /**
-   * Generate mock notifications for demonstration
+   * Call backend API to delete notifications (clear all or clear read)
    */
-  generateMockNotifications(): void {
-    const now = new Date();
-    const mockNotifications: Notification[] = [];
-    
-    // Order assigned notifications
-    for (let i = 0; i < 5; i++) {
-      const hoursAgo = i * 2;
-      const date = new Date(now);
-      date.setHours(date.getHours() - hoursAgo);
-      
-      mockNotifications.push({
-        id: this.generateId(),
-        type: 'order_assigned',
-        title: 'New Order Assigned',
-        message: `Order #${1000 + i} has been assigned to you. Pickup: Downtown Station`,
-        timestamp: date,
-        read: false,
-        orderId: `order-${1000 + i}`,
-        amount: Math.floor(Math.random() * 50) + 10
-      });
+  private deleteNotificationsApi(
+    body: { clear_all?: boolean; clear_read?: boolean },
+    onSuccess?: () => void
+  ): void {
+    const rick = this.authService.getCurrentUserValue()?.rick || this.authService.getStoredRick();
+    if (!rick) {
+      console.warn('Rick ID not found, skipping delete notifications API call');
+      return;
     }
-
-    // Order completed notifications
-    for (let i = 0; i < 8; i++) {
-      const daysAgo = i;
-      const date = new Date(now);
-      date.setDate(date.getDate() - daysAgo);
-      date.setHours(Math.floor(Math.random() * 24));
-      
-      mockNotifications.push({
-        id: this.generateId(),
-        type: 'order_completed',
-        title: 'Order Completed',
-        message: `Order #${2000 + i} has been completed successfully.`,
-        timestamp: date,
-        read: false,
-        orderId: `order-${2000 + i}`,
-        amount: Math.floor(Math.random() * 50) + 10
-      });
-    }
-
-    // Payslip generated notifications (one per month for last 3 months)
-    for (let i = 0; i < 3; i++) {
-      const monthsAgo = i;
-      const date = new Date(now);
-      date.setMonth(date.getMonth() - monthsAgo);
-      
-      const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
-                         'July', 'August', 'September', 'October', 'November', 'December'];
-      const monthName = monthNames[date.getMonth()];
-      const year = date.getFullYear();
-      
-      mockNotifications.push({
-        id: this.generateId(),
-        type: 'payslip_generated',
-        title: 'Payslip Generated',
-        message: `Your payslip for ${monthName} ${year} has been generated.`,
-        timestamp: date,
-        read: false,
-        payslipMonth: monthName,
-        payslipYear: year,
-        amount: Math.floor(Math.random() * 2000) + 1000
-      });
-    }
-
-    // Sort by timestamp (newest first)
-    mockNotifications.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
-    
-    this.notifications = mockNotifications;
-    this.saveNotifications();
-    this.notificationsSubject.next([...this.notifications]);
-  }
-
-  /**
-   * Save notifications to localStorage
-   */
-  private saveNotifications(): void {
-    try {
-      localStorage.setItem('notifications', JSON.stringify(this.notifications));
-    } catch (error) {
-      console.error('Error saving notifications:', error);
-    }
-  }
-
-  /**
-   * Load notifications from localStorage
-   */
-  private loadNotifications(): void {
-    try {
-      const stored = localStorage.getItem('notifications');
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        // Convert timestamp strings back to Date objects
-        this.notifications = parsed.map((n: any) => ({
-          ...n,
-          timestamp: new Date(n.timestamp)
-        }));
-        // If array is empty, generate mock data
-        if (this.notifications.length === 0) {
-          this.generateMockNotifications();
-        } else {
-          this.notificationsSubject.next([...this.notifications]);
-        }
-      } else {
-        // Initialize with mock data if no stored notifications
-        this.generateMockNotifications();
+    this.http.post(`${this.apiUrl}/app/notifications/delete`, {
+      rick,
+      ...body
+    }).subscribe({
+      next: () => onSuccess?.(),
+      error: (err) => {
+        console.error('Delete notifications API error:', err);
+        onSuccess?.(); // Refresh anyway to sync state
       }
-    } catch (error) {
-      console.error('Error loading notifications:', error);
-      this.generateMockNotifications();
-    }
+    });
   }
 
   /**
-   * Generate unique ID for notifications
+   * Generate unique ID for notifications (used when adding from OneSignal push)
    */
   private generateId(): string {
     return `notif-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -293,10 +288,14 @@ export class NotificationsService {
         type,
         title,
         message,
-        orderId: data.orderId,
-        payslipMonth: data.payslipMonth,
-        payslipYear: data.payslipYear,
-        amount: data.amount
+        orderId: data.orderId ?? data.order_id,
+        payslipMonth: data.payslipMonth ?? data.payslip_month,
+        payslipYear: data.payslipYear ?? data.payslip_year,
+        amount: data.amount,
+        pickupDate: data.pickupDate ?? data.pickup_date,
+        pickupTime: data.pickupTime ?? data.pickup_time,
+        pickupAddress: data.pickup ?? data.pickupAddress ?? data.pickup_address ?? data.pickup_location,
+        dropoffAddress: data.dropoff ?? data.dropoffAddress ?? data.dropoff_address ?? data.dropoff_location
       };
 
       // Add notification to the list

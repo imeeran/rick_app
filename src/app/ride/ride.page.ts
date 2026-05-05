@@ -12,7 +12,7 @@ import {
   IonCardTitle,
   IonSpinner
 } from '@ionic/angular/standalone';
-import { ToastController } from '@ionic/angular/standalone';
+import { ToastController, AlertController } from '@ionic/angular/standalone';
 import { ViewDidEnter, ViewWillEnter } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { 
@@ -26,8 +26,8 @@ import {
   chevronDownOutline,
   chevronUpOutline,
   listOutline,
-  playCircleOutline,
-  calendarOutline
+  calendarOutline,
+  checkmarkDoneOutline
 } from 'ionicons/icons';
 import { Geolocation } from '@capacitor/geolocation';
 import { BookingsService, Booking } from '../services/bookings.service';
@@ -73,7 +73,7 @@ export class RidePage implements OnInit, AfterViewInit, OnDestroy, ViewDidEnter,
   isLoadingBookings = false;
   isUpdatingStatus = false; // Track if status update API call is in progress
   isRideCardMinimized = signal<boolean>(false); // Track if ride card is minimized
-  isRideAccepted = signal<boolean>(false); // Track if ride is accepted (shows Start Ride button)
+  isRideAccepted = signal<boolean>(false); // true when booking is in-progress (shows Complete only)
 
   // Route animation
   private routePolyline: L.Polyline | null = null;
@@ -94,6 +94,7 @@ export class RidePage implements OnInit, AfterViewInit, OnDestroy, ViewDidEnter,
     private http: HttpClient,
     private authService: AuthService,
     private toastController: ToastController,
+    private alertController: AlertController,
     private router: Router
   ) {
     addIcons({
@@ -107,7 +108,7 @@ export class RidePage implements OnInit, AfterViewInit, OnDestroy, ViewDidEnter,
       'chevron-down-outline': chevronDownOutline,
       'chevron-up-outline': chevronUpOutline,
       'list-outline': listOutline,
-      'play-circle-outline': playCircleOutline,
+      'checkmark-done-outline': checkmarkDoneOutline,
       'calendar-outline': calendarOutline
     });
   }
@@ -403,6 +404,23 @@ export class RidePage implements OnInit, AfterViewInit, OnDestroy, ViewDidEnter,
     }
   }
 
+  private centerMapOnUpcomingRide(): void {
+    if (!this.upcomingRide) return;
+    if (this.isMapReady) {
+      const pickupCoords = this.geocodeLocation(this.upcomingRide.pickupLocation);
+      this.map.setView([pickupCoords.lat, pickupCoords.lng], 13);
+      this.showRoute(false);
+    } else if (this.map) {
+      setTimeout(() => {
+        if (this.map && this.upcomingRide) {
+          const pickupCoords = this.geocodeLocation(this.upcomingRide.pickupLocation);
+          this.map.setView([pickupCoords.lat, pickupCoords.lng], 13);
+          this.showRoute(false);
+        }
+      }, 500);
+    }
+  }
+
   loadUpcomingRide() {
     console.log('RidePage: loadUpcomingRide() called - fetching pending bookings');
     this.isLoadingBookings = true;
@@ -463,47 +481,54 @@ export class RidePage implements OnInit, AfterViewInit, OnDestroy, ViewDidEnter,
             return;
           }
 
-          // Filter for pending bookings only
-          const pendingBookings = bookings.filter(booking => booking.status === 'pending');
-          
-          // Sort by date and time (earliest first)
-          pendingBookings.sort((a, b) => {
-            const dateA = new Date(`${a.date}T${a.time || '00:00:00'}`).getTime();
-            const dateB = new Date(`${b.date}T${b.time || '00:00:00'}`).getTime();
-            return dateA - dateB;
-          });
+          const norm = (s: string) =>
+            (s === 'in_progress' ? 'in-progress' : s) as Booking['status'];
 
-          if (pendingBookings.length > 0) {
-            // Get the earliest pending ride
+          const inProgressBookings = bookings.filter(b => {
+            const st = String(b.status);
+            return st === 'in-progress' || st === 'in_progress';
+          });
+          const pendingBookings = bookings.filter(booking => booking.status === 'pending');
+
+          const sortByDate = (arr: typeof bookings) =>
+            [...arr].sort((a, b) => {
+              const dateA = new Date(`${a.date}T${a.time || '00:00:00'}`).getTime();
+              const dateB = new Date(`${b.date}T${b.time || '00:00:00'}`).getTime();
+              return dateA - dateB;
+            });
+
+          // Prefer in-progress (accepted) ride, else earliest pending
+          const inProgressSorted = sortByDate(inProgressBookings);
+          const pendingSorted = sortByDate(pendingBookings);
+
+          if (inProgressSorted.length > 0) {
+            const b = inProgressSorted[0];
             this.upcomingRide = {
-              id: pendingBookings[0].id,
-              date: pendingBookings[0].date,
-              time: pendingBookings[0].time || '00:00:00',
-              status: pendingBookings[0].status,
-              pickupLocation: pendingBookings[0].pickupLocation,
-              dropoffLocation: pendingBookings[0].dropoffLocation,
-              passengerName: pendingBookings[0].passengerName
+              id: b.id,
+              date: b.date,
+              time: b.time || '00:00:00',
+              status: norm(String(b.status)),
+              pickupLocation: b.pickupLocation,
+              dropoffLocation: b.dropoffLocation,
+              passengerName: b.passengerName
             };
-            
-            // Reset accepted status for new ride
+            this.isRideAccepted.set(true);
+            console.log('RidePage: Found in-progress ride:', this.upcomingRide);
+            this.centerMapOnUpcomingRide();
+          } else if (pendingSorted.length > 0) {
+            const b = pendingSorted[0];
+            this.upcomingRide = {
+              id: b.id,
+              date: b.date,
+              time: b.time || '00:00:00',
+              status: b.status,
+              pickupLocation: b.pickupLocation,
+              dropoffLocation: b.dropoffLocation,
+              passengerName: b.passengerName
+            };
             this.isRideAccepted.set(false);
             console.log('RidePage: Found pending ride:', this.upcomingRide);
-            
-            // Center map on pickup location and show route
-            if (this.isMapReady) {
-              const pickupCoords = this.geocodeLocation(this.upcomingRide.pickupLocation);
-              this.map.setView([pickupCoords.lat, pickupCoords.lng], 13);
-              this.showRoute(false); // false = don't animate yet
-            } else if (this.map) {
-              // If map exists but not ready, wait a bit and try again
-              setTimeout(() => {
-                if (this.map && this.upcomingRide) {
-                  const pickupCoords = this.geocodeLocation(this.upcomingRide.pickupLocation);
-                  this.map.setView([pickupCoords.lat, pickupCoords.lng], 13);
-                  this.showRoute(false);
-                }
-              }, 500);
-            }
+            this.centerMapOnUpcomingRide();
           } else {
             console.log('RidePage: No pending bookings found');
             this.upcomingRide = null;
@@ -926,11 +951,10 @@ export class RidePage implements OnInit, AfterViewInit, OnDestroy, ViewDidEnter,
           console.log('RidePage: Ride accepted successfully', response);
           this.isUpdatingStatus = false;
           
-          // Mark ride as accepted - this will show the "Start Ride" button
           this.isRideAccepted.set(true);
-          
-          // Keep the ride card visible but show Start Ride button instead of Accept/Reject
-          // Don't hide the card or clear the route - just change the button
+          if (this.upcomingRide) {
+            this.upcomingRide = { ...this.upcomingRide, status: 'in-progress' };
+          }
         },
         error: (error) => {
           console.error('RidePage: Failed to accept ride:', error);
@@ -952,23 +976,68 @@ export class RidePage implements OnInit, AfterViewInit, OnDestroy, ViewDidEnter,
     });
   }
 
-  startRide() {
-    if (!this.upcomingRide || !this.isOnline) {
-      if (!this.isOnline) {
-        alert('Please go online to start the ride.');
-      }
+  async completeRide() {
+    if (!this.upcomingRide || this.isUpdatingStatus) return;
+
+    if (!this.isOnline) {
+      alert('Please go online to complete the ride.');
       return;
     }
 
-    console.log('Starting ride:', this.upcomingRide.id);
-    
-    // Show route with animation
-    if (this.isMapReady && this.map) {
-      this.showRoute(true); // true = show animation
-    }
-    
-    // Hide the ride card after starting (or you can keep it visible with ride details)
-    // For now, let's keep it visible but you can change this behavior
+    const completeConfirm = await this.alertController.create({
+      header: 'Complete ride',
+      message: 'Mark this ride as completed? This cannot be undone.',
+      buttons: [
+        { text: 'Cancel', role: 'cancel' },
+        {
+          text: 'Complete',
+          role: 'confirm',
+          handler: () => {
+            this.performCompleteRide();
+          }
+        }
+      ]
+    });
+    await completeConfirm.present();
+  }
+
+  private performCompleteRide() {
+    if (!this.upcomingRide || this.isUpdatingStatus) return;
+
+    const bookingId = this.upcomingRide.id;
+    this.isUpdatingStatus = true;
+
+    this.http.post<{ success?: boolean; message?: string }>(`${this.apiUrl}/app/bookings/update-status`, {
+      bookingId,
+      status: 'completed'
+    })
+      .pipe(
+        catchError((error: HttpErrorResponse | Error) => {
+          let errorMessage = 'Failed to complete ride';
+          if (error instanceof Error) {
+            errorMessage = error.message;
+          } else if (error.error instanceof ErrorEvent) {
+            errorMessage = `Error: ${error.error.message}`;
+          } else {
+            const apiError = error.error as { message?: string };
+            errorMessage = apiError?.message || error.message || `Error Code: ${error.status}\nMessage: ${error.message}`;
+          }
+          this.isUpdatingStatus = false;
+          alert(`Failed to complete ride: ${errorMessage}`);
+          return throwError(() => new Error(errorMessage));
+        })
+      )
+      .subscribe({
+        next: () => {
+          this.isUpdatingStatus = false;
+          this.isRideAccepted.set(false);
+          this.upcomingRide = null;
+          this.loadUpcomingRide();
+        },
+        error: () => {
+          this.isUpdatingStatus = false;
+        }
+      });
   }
 
   rejectRide() {

@@ -137,8 +137,8 @@
                 </ion-item>
                 <ion-item lines="none">
                   <ion-label>
-                    <h2>Transaction Number</h2>
-                    <p>{{ driver()?.trans_no || 'N/A' }}</p>
+                    <h2>Permit Number</h2>
+                    <p>{{ driver()?.driver_permit_num || 'N/A' }}</p>
                   </ion-label>
                 </ion-item>
                 <ion-item lines="none">
@@ -204,6 +204,11 @@
         </div>
       }
     }
+  </div>
+
+  <div class="app-version-footer">
+    <span>Version {{ appVersion }}</span>
+    <span>Build {{ appBuildNumber }}</span>
   </div>
 </ion-content>
 

@@ -15,6 +15,7 @@ import {
 } from '@ionic/angular/standalone';
 import { ThemeService, Theme } from '../services/theme.service';
 import { AuthService, Driver } from '../services/auth.service';
+import { environment } from '../../environments/environment';
 import { PayslipService } from '../services/payslip.service';
 import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
@@ -51,6 +52,8 @@ import {
 })
 export class ProfilePage implements OnInit, OnDestroy {
   selectedSegment = signal<string>('personal');
+  appVersion = environment.version;
+  appBuildNumber = environment.buildNumber;
   themes: Theme[] = [];
   filteredThemes: Theme[] = [];
   currentTheme = signal<string>('default');

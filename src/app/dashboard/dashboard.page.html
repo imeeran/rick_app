@@ -22,7 +22,7 @@
       <ion-grid class="stats-grid">
         <ion-row>
           <ion-col size="6" size-md="3">
-            <ion-card class="stat-card completed">
+            <ion-card class="stat-card completed stat-card--nav" (click)="goToStatCard('completed')" role="button" tabindex="0" (keydown.enter)="goToStatCard('completed')" (keydown.space)="$event.preventDefault(); goToStatCard('completed')">
               <ion-card-content>
                 <div class="stat-icon">✓</div>
                 <div class="stat-value">{{ dashboardData.currentMonthCompletedRides }}</div>
@@ -31,7 +31,7 @@
             </ion-card>
           </ion-col>
           <ion-col size="6" size-md="3">
-            <ion-card class="stat-card cancelled">
+            <ion-card class="stat-card cancelled stat-card--nav" (click)="goToStatCard('cancelled')" role="button" tabindex="0" (keydown.enter)="goToStatCard('cancelled')" (keydown.space)="$event.preventDefault(); goToStatCard('cancelled')">
               <ion-card-content>
                 <div class="stat-icon">✕</div>
                 <div class="stat-value">{{ dashboardData.currentMonthCancelledRides }}</div>
@@ -40,7 +40,7 @@
             </ion-card>
           </ion-col>
           <ion-col size="6" size-md="3">
-            <ion-card class="stat-card assigned-orders-month">
+            <ion-card class="stat-card assigned-orders-month stat-card--nav" (click)="goToStatCard('assignedMonth')" role="button" tabindex="0" (keydown.enter)="goToStatCard('assignedMonth')" (keydown.space)="$event.preventDefault(); goToStatCard('assignedMonth')">
               <ion-card-content>
                 <div class="stat-icon">📋</div>
                 <div class="stat-value">{{ dashboardData.currentMonthAssignedOrders }}</div>
@@ -49,7 +49,7 @@
             </ion-card>
           </ion-col>
           <ion-col size="6" size-md="3">
-            <ion-card class="stat-card assigned-orders-today">
+            <ion-card class="stat-card assigned-orders-today stat-card--nav" (click)="goToStatCard('assignedToday')" role="button" tabindex="0" (keydown.enter)="goToStatCard('assignedToday')" (keydown.space)="$event.preventDefault(); goToStatCard('assignedToday')">
               <ion-card-content>
                 <div class="stat-icon">📋</div>
                 <div class="stat-value">{{ dashboardData.todayAssignedOrders }}</div>
@@ -65,6 +65,13 @@
       <div class="loading-container">
         <ion-spinner></ion-spinner>
         <p>Loading dashboard data...</p>
+      </div>
+    }
+
+    @if (!isLoading && loadError) {
+      <div class="dashboard-error">
+        <p>{{ loadError }}</p>
+        <ion-button fill="outline" (click)="loadDashboardData()">Try again</ion-button>
       </div>
     }
 

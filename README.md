@@ -120,3 +120,8 @@ See **[PLAY_STORE_UPLOAD.md](PLAY_STORE_UPLOAD.md)** for keystore setup, signing
 | `npx cap sync android` | Sync web build to Android |
 | `cd android && ./gradlew bundleRelease` | Build AAB for Play Store |
 | `cd android && ./gradlew assembleRelease` | Build APK |
+
+
+## Special notification sound while assgned driver android
+Channel ID: 053fa270-1289-4c49-b4f2-d137e76283f5
+

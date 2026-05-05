@@ -70,6 +70,17 @@
   }
 }
 
+.dashboard-error {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: var(--ion-color-danger);
+
+  p {
+    margin: 0 0 1rem;
+    color: var(--ion-text-color);
+  }
+}
+
 .stats-grid {
   margin-bottom: 1.5rem;
   padding: 0;
@@ -90,6 +101,14 @@
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   height: 100%;
   background: var(--ion-card-background, #ffffff);
+
+  &.stat-card--nav {
+    cursor: pointer;
+
+    &:hover {
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+    }
+  }
 
   &:active {
     transform: scale(0.98);

@@ -33,7 +33,7 @@ export interface Driver {
   daman_expiry: string;
   driving_licence_expiry: string;
   trafic_code: string;
-  trans_no: string;
+  driver_permit_num: string;
   limo_permit_expiry: string;
   created_at: string;
   updated_at: string;
@@ -219,28 +219,45 @@ export class AuthService {
   }
 
   /**
-   * Handle HTTP errors
+   * Handle HTTP errors - avoid showing raw technical errors (e.g. "Http failure response... 0 Unknown Error") on UI
    */
   private handleError = (error: HttpErrorResponse | Error): Observable<never> => {
-    let errorMessage = 'An unknown error occurred';
+    let errorMessage = 'Login failed. Please try again.';
     
     if (error instanceof Error) {
       // Error thrown from tap operator (API-level error with success: false)
-      errorMessage = error.message;
+      const msg = error.message;
+      if (!this.isRawHttpError(msg)) {
+        errorMessage = msg;
+      }
     } else if (error.error instanceof ErrorEvent) {
-      // Client-side error
-      errorMessage = `Error: ${error.error.message}`;
+      // Client-side error - don't expose raw message
+      errorMessage = 'Login failed. Please check your connection and try again.';
     } else {
-      // Server-side HTTP error - check if response has API error format
-      const apiError = error.error as AuthResponse;
-      if (apiError && typeof apiError === 'object' && 'message' in apiError) {
-        errorMessage = apiError.errors || apiError.message || error.message;
+      // Server-side HTTP error
+      if (error.status === 0) {
+        // Network/CORS/connection failure - never show raw error on UI
+        errorMessage = 'Unable to connect. Please check your connection and try again.';
       } else {
-        errorMessage = error.error?.message || error.message || `Error Code: ${error.status}\nMessage: ${error.message}`;
+        const apiError = error.error as AuthResponse;
+        if (apiError && typeof apiError === 'object' && (apiError.message || apiError.errors)) {
+          const msg = apiError.errors || apiError.message || '';
+          if (!this.isRawHttpError(msg)) {
+            errorMessage = msg;
+          }
+        }
       }
     }
     
     console.error('API Error:', errorMessage);
     return throwError(() => new Error(errorMessage));
   };
+
+  /** Detect raw HTTP error messages that should not be shown to users */
+  private isRawHttpError(message: string): boolean {
+    return !message || 
+      message.includes('Http failure response') || 
+      message.includes('Unknown Error') ||
+      message.startsWith('Error Code:');
+  }
 }

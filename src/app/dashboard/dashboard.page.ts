@@ -52,6 +52,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy, ViewWill
   
   dashboardData: DashboardData | null = null;
   isLoading = true;
+  loadError: string | null = null;
   unreadCount = signal<number>(0);
   
   private ridesChart: Chart | null = null;
@@ -73,7 +74,6 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy, ViewWill
   }
 
   ngOnInit() {
-    this.loadDashboardData();
     // Subscribe to theme changes to update chart colors
     this.themeSubscription = this.themeService.currentTheme$.subscribe(() => {
       // Wait a bit for theme to be applied to DOM
@@ -91,6 +91,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy, ViewWill
   }
 
   ionViewWillEnter() {
+    this.loadDashboardData();
     // Update chart colors when returning to this tab (in case theme changed while away)
     if (this.dashboardData && (this.ridesChart || this.assignedOrdersChart)) {
       setTimeout(() => {
@@ -125,25 +126,66 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy, ViewWill
     this.router.navigate(['/tabs/notification']);
   }
 
+  /** Navigate to Bookings with the segment / filters that match each dashboard stat */
+  goToStatCard(
+    kind: 'completed' | 'cancelled' | 'assignedMonth' | 'assignedToday'
+  ): void {
+    if (kind === 'completed') {
+      this.router.navigate(['/tabs/bookings'], { queryParams: { segment: 'completed' } });
+      return;
+    }
+    if (kind === 'cancelled') {
+      this.router.navigate(['/tabs/bookings'], { queryParams: { segment: 'cancelled' } });
+      return;
+    }
+    if (kind === 'assignedMonth') {
+      this.router.navigate(['/tabs/bookings'], {
+        queryParams: { segment: 'pending', scope: 'currentMonth' }
+      });
+      return;
+    }
+    this.router.navigate(['/tabs/bookings'], {
+      queryParams: { segment: 'pending', scope: 'today' }
+    });
+  }
+
   loadDashboardData() {
     this.isLoading = true;
+    this.loadError = null;
     this.chartCreationAttempts = 0; // Reset attempts
-    this.dashboardService.getDashboardData().subscribe(data => {
-      this.dashboardData = data;
-      this.isLoading = false;
-      // Let Angular's change detection handle the view update naturally
-      // Wait for multiple animation frames to ensure Ionic's content is ready
-      requestAnimationFrame(() => {
+    this.dashboardService.getDashboardData().subscribe({
+      next: (data) => {
+        this.dashboardData = data;
+        this.isLoading = false;
+        this.loadError = null;
+        this.cdr.markForCheck();
+        // Let Angular's change detection handle the view update naturally
         requestAnimationFrame(() => {
           requestAnimationFrame(() => {
-            setTimeout(() => {
-              if (!this.isDestroyed) {
-                this.createCharts();
-              }
-            }, 400);
+            requestAnimationFrame(() => {
+              setTimeout(() => {
+                if (!this.isDestroyed) {
+                  this.createCharts();
+                }
+              }, 400);
+            });
           });
         });
-      });
+      },
+      error: (err: Error) => {
+        this.isLoading = false;
+        this.dashboardData = null;
+        this.loadError = err?.message || 'Could not load dashboard.';
+        if (this.ridesChart) {
+          this.ridesChart.destroy();
+          this.ridesChart = null;
+        }
+        if (this.assignedOrdersChart) {
+          this.assignedOrdersChart.destroy();
+          this.assignedOrdersChart = null;
+        }
+        this.cdr.markForCheck();
+      }
     });
   }
 

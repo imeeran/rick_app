@@ -44,7 +44,7 @@
       <ion-card [class.minimized]="isRideCardMinimized()">
         <ion-card-header>
           <div class="card-header-content">
-            <ion-card-title>New Ride Request</ion-card-title>
+            <ion-card-title>{{ isRideAccepted() ? 'Active Ride' : 'New Ride Request' }}</ion-card-title>
             <button 
               class="minimize-ride-btn" 
               (click)="toggleRideCardMinimize()"
@@ -93,16 +93,19 @@
             <!-- Action Buttons -->
             <div class="action-buttons">
               @if (isRideAccepted()) {
-                <!-- Start Ride Button (shown after acceptance) -->
                 <ion-button 
                   expand="block" 
-                  color="primary" 
-                  (click)="startRide()"
-                  [disabled]="!isOnline"
+                  color="success" 
+                  (click)="completeRide()"
+                  [disabled]="isUpdatingStatus || !isOnline"
                   [class.button-disabled]="!isOnline"
-                  class="start-ride-btn">
-                  <ion-icon name="play-circle-outline" slot="start"></ion-icon>
-                  Start Ride
+                  class="complete-ride-btn">
+                  @if (isUpdatingStatus) {
+                    <ion-spinner name="crescent"></ion-spinner>
+                  } @else {
+                    <ion-icon name="checkmark-done-outline" slot="start"></ion-icon>
+                    Complete
+                  }
                 </ion-button>
               } @else {
                 <!-- Accept/Reject Buttons (shown before acceptance) -->

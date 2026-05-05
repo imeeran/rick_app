@@ -1,5 +1,6 @@
 import { Component, OnInit, OnDestroy, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { 
   IonContent,
   IonCard,
@@ -8,8 +9,12 @@ import {
   IonButton,
   IonList,
   IonBadge,
-  AlertController,
-  ActionSheetController
+  IonModal,
+  IonHeader,
+  IonToolbar,
+  IonTitle,
+  IonButtons,
+  AlertController
 } from '@ionic/angular/standalone';
 import { NotificationsService, Notification } from '../services/notifications.service';
 import { Subscription } from 'rxjs';
@@ -18,11 +23,11 @@ import {
   notificationsOutline, 
   checkmarkCircleOutline, 
   documentTextOutline,
-  closeCircleOutline,
   trashOutline,
-  eyeOutline,
   checkmarkDoneOutline,
-  calendarOutline
+  calendarOutline,
+  closeOutline,
+  carOutline
 } from 'ionicons/icons';
 
 @Component({
@@ -37,28 +42,36 @@ import {
     IonIcon,
     IonButton,
     IonList,
-    IonBadge
+    IonBadge,
+    IonModal,
+    IonHeader,
+    IonToolbar,
+    IonTitle,
+    IonButtons
   ]
 })
 export class NotificationPage implements OnInit, OnDestroy {
+  ionViewWillEnter = () => this.notificationsService.fetchNotifications();
   notifications = signal<Notification[]>([]);
   unreadCount = signal<number>(0);
+  selectedNotification = signal<Notification | null>(null);
+  isModalOpen = signal(false);
   private notificationsSubscription?: Subscription;
 
   constructor(
     private notificationsService: NotificationsService,
     private alertController: AlertController,
-    private actionSheetController: ActionSheetController
+    private router: Router
   ) {
     addIcons({ 
       notificationsOutline, 
       checkmarkCircleOutline, 
       documentTextOutline,
-      closeCircleOutline,
       trashOutline,
-      eyeOutline,
       checkmarkDoneOutline,
-      calendarOutline
+      calendarOutline,
+      closeOutline,
+      carOutline
     });
   }
 
@@ -107,6 +120,27 @@ export class NotificationPage implements OnInit, OnDestroy {
     }
   }
 
+  formatNotificationDate(date: Date): string {
+    const d = new Date(date);
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
+  }
+
+  getPickupDisplay(notification: Notification): string {
+    const parts: string[] = [];
+    if (notification.pickupDate) {
+      // Format "2025-02-26" -> "Feb 26, 2025"
+      const d = new Date(notification.pickupDate + 'T00:00:00');
+      parts.push(d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }));
+    }
+    if (notification.pickupTime) {
+      // Format "14:30:00" -> "2:30 PM"
+      const [h, m] = notification.pickupTime.split(':').map(Number);
+      const date = new Date(2000, 0, 1, h, m || 0, 0);
+      parts.push(date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }));
+    }
+    return parts.join(' at ');
+  }
+
   formatTimestamp(date: Date): string {
     const now = new Date();
     const notificationDate = new Date(date);
@@ -132,73 +166,53 @@ export class NotificationPage implements OnInit, OnDestroy {
     }
   }
 
-  async viewNotification(notification: Notification) {
-    // Mark as read if unread
+  viewNotification(notification: Notification) {
     if (!notification.read) {
       this.notificationsService.markAsRead(notification.id);
     }
-
-    // Show action sheet with view options
-    const actionSheet = await this.actionSheetController.create({
-      header: notification.title,
-      subHeader: notification.message,
-      buttons: [
-        {
-          text: 'View Details',
-          icon: 'eye-outline',
-          handler: () => {
-            this.showNotificationDetails(notification);
-          }
-        },
-        {
-          text: notification.read ? 'Mark as Unread' : 'Mark as Read',
-          icon: notification.read ? 'notifications-outline' : 'checkmark-done-outline',
-          handler: () => {
-            if (notification.read) {
-              // Note: Service doesn't have markAsUnread, but we can implement if needed
-              // For now, just mark as read
-            } else {
-              this.notificationsService.markAsRead(notification.id);
-            }
-          }
-        },
-        {
-          text: 'Delete',
-          icon: 'trash-outline',
-          role: 'destructive',
-          handler: () => {
-            this.deleteNotification(notification.id);
-          }
-        },
-        {
-          text: 'Cancel',
-          icon: 'close-circle-outline',
-          role: 'cancel'
-        }
-      ]
-    });
-
-    await actionSheet.present();
+    this.selectedNotification.set(notification);
+    this.isModalOpen.set(true);
   }
 
-  async showNotificationDetails(notification: Notification) {
-    let message = notification.message;
-    
-    if (notification.orderId) {
-      message += `\n\nOrder ID: ${notification.orderId}`;
-    }
-    
-    if (notification.payslipMonth && notification.payslipYear) {
-      message += `\n\nPeriod: ${notification.payslipMonth} ${notification.payslipYear}`;
-    }
+  closeModal() {
+    this.isModalOpen.set(false);
+    this.selectedNotification.set(null);
+  }
 
-    const alert = await this.alertController.create({
-      header: notification.title,
-      message: message,
-      buttons: ['OK']
-    });
+  getActionButtonConfig(notification: Notification): { text: string; icon: string; route: string | null } {
+    switch (notification.type) {
+      case 'order_assigned':
+        return { text: 'View Booking', icon: 'car-outline', route: '/tabs/bookings' };
+      case 'order_completed':
+        return { text: 'View Booking', icon: 'car-outline', route: '/tabs/bookings' };
+      case 'payslip_generated':
+        return { text: 'View Payslip', icon: 'document-text-outline', route: '/tabs/payslip' };
+      default:
+        return { text: 'Close', icon: 'close-outline', route: null };
+    }
+  }
 
-    await alert.present();
+  handleActionClick(notification: Notification) {
+    const config = this.getActionButtonConfig(notification);
+    this.closeModal();
+    if (config.route) {
+      setTimeout(() => this.router.navigate([config.route]), 300);
+    }
+  }
+
+  markAsReadFromModal() {
+    const notification = this.selectedNotification();
+    if (notification) {
+      this.notificationsService.markAsRead(notification.id);
+    }
+  }
+
+  deleteFromModal() {
+    const notification = this.selectedNotification();
+    if (notification) {
+      // this.notificationsService.deleteNotification(notification.id);
+      this.closeModal();
+    }
   }
 
   async clearAllNotifications() {
@@ -250,7 +264,7 @@ export class NotificationPage implements OnInit, OnDestroy {
   }
 
   deleteNotification(notificationId: string) {
-    this.notificationsService.deleteNotification(notificationId);
+    // this.notificationsService.deleteNotification(notificationId);
   }
 
   formatCurrency(amount: number): string {

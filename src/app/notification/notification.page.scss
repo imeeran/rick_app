@@ -233,6 +233,118 @@ body.dark {
   }
 }
 
+// Notification details modal
+.notification-details-modal {
+  --border-radius: 16px 16px 0 0;
+  --box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+
+  .modal-details {
+    padding: 0.5rem 0;
+  }
+
+  .modal-detail-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .modal-icon {
+    font-size: 1.5rem;
+  }
+
+  .modal-datetime {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .modal-time {
+    font-size: 0.875rem;
+    color: var(--ion-color-medium);
+  }
+
+  .modal-date {
+    font-size: 0.75rem;
+    color: var(--ion-color-medium);
+    opacity: 0.9;
+  }
+
+  .modal-message {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: var(--ion-text-color);
+    margin: 0 0 1rem 0;
+
+    p {
+      margin: 0;
+    }
+
+  }
+
+  .modal-locations {
+    margin-top: 1rem;
+    padding: 0.75rem 0;
+    border-top: 1px solid var(--ion-color-light);
+  }
+
+  .modal-location-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    margin-bottom: 0.75rem;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  .modal-location-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--ion-color-medium);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .modal-location-address {
+    font-size: 0.9375rem;
+    color: var(--ion-text-color);
+    line-height: 1.5;
+  }
+
+  .modal-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0;
+    font-size: 0.875rem;
+    color: var(--ion-color-medium);
+
+    ion-icon {
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+  }
+
+  .modal-amount {
+    margin-top: 1rem;
+    padding: 0.75rem;
+    background: var(--ion-color-light);
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--ion-color-primary);
+  }
+
+  .modal-actions {
+    margin-top: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+}
+
 // Responsive design
 @media (max-width: 576px) {
   .notifications-header {

@@ -1,3 +1,18 @@
+// Ensure selected segment text is visible (fixes pink-on-pink in dark mode)
+.bookings-container ion-segment ion-segment-button.segment-button-checked {
+  --color-checked: var(--ion-color-primary-contrast, #ffffff) !important;
+  color: var(--ion-color-primary-contrast, #ffffff) !important;
+
+  ion-label {
+    color: var(--ion-color-primary-contrast, #ffffff) !important;
+    --color: var(--ion-color-primary-contrast, #ffffff) !important;
+  }
+
+  &::part(native) {
+    color: var(--ion-color-primary-contrast, #ffffff) !important;
+  }
+}
+
 .bookings-container {
   padding: 1rem;
   max-width: 1400px;
@@ -74,7 +89,7 @@ ion-segment {
   
   ion-segment-button {
     --indicator-color: transparent;
-    --color-checked: #ffffff;
+    --color-checked: var(--ion-color-primary-contrast, #ffffff);
     --background-checked: var(--ion-color-primary, #3880ff);
     border-radius: 8px;
     margin: clamp(2px, 0.75vw, 3px);
@@ -88,11 +103,12 @@ ion-segment {
     
     &.segment-button-checked {
       background: var(--ion-color-primary, #3880ff) !important;
+      color: var(--ion-color-primary-contrast, #ffffff) !important;
       margin: clamp(2px, 0.75vw, 3px);
       
       ion-label {
-        --color: #ffffff !important;
-        color: #ffffff !important;
+        --color: var(--ion-color-primary-contrast, #ffffff) !important;
+        color: var(--ion-color-primary-contrast, #ffffff) !important;
         font-weight: 600;
       }
     }

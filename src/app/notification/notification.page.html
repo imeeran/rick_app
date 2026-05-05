@@ -1,4 +1,98 @@
 <ion-content [fullscreen]="true">
+  <!-- Notification Details Modal -->
+  <ion-modal
+    [isOpen]="isModalOpen()"
+    (didDismiss)="closeModal()"
+    [initialBreakpoint]="0.75"
+    [breakpoints]="[0, 0.5, 0.75, 1]"
+    class="notification-details-modal">
+    <ng-template>
+      @if (selectedNotification(); as notification) {
+        <ion-header>
+          <ion-toolbar>
+            <ion-title>{{ notification.title }}</ion-title>
+            <ion-buttons slot="end">
+              <ion-button (click)="closeModal()">
+                <ion-icon name="close-outline"></ion-icon>
+              </ion-button>
+            </ion-buttons>
+          </ion-toolbar>
+        </ion-header>
+        <ion-content class="ion-padding">
+          <div class="modal-details">
+            <div class="modal-detail-row">
+              <ion-icon 
+                [name]="getNotificationIcon(notification.type)" 
+                [color]="getNotificationColor(notification.type)"
+                class="modal-icon"></ion-icon>
+              <div class="modal-datetime">
+                <span class="modal-time">{{ formatTimestamp(notification.timestamp) }}</span>
+                <span class="modal-date">({{ formatNotificationDate(notification.timestamp) }})</span>
+              </div>
+            </div>
+            @if (notification.message) {
+              <div class="modal-message">
+                <p>{{ notification.message }}</p>
+              </div>
+            }
+            @if (notification.pickupAddress || notification.dropoffAddress) {
+              <div class="modal-locations">
+                @if (notification.pickupAddress) {
+                  <div class="modal-location-row">
+                    <span class="modal-location-label">Pickup:</span>
+                    <span class="modal-location-address">{{ notification.pickupAddress }}</span>
+                  </div>
+                }
+                @if (notification.dropoffAddress) {
+                  <div class="modal-location-row">
+                    <span class="modal-location-label">Dropoff:</span>
+                    <span class="modal-location-address">{{ notification.dropoffAddress }}</span>
+                  </div>
+                }
+              </div>
+            }
+            @if (notification.orderId) {
+              <div class="modal-meta">
+                <ion-icon name="document-text-outline"></ion-icon>
+                <span>Order ID: {{ notification.orderId }}</span>
+              </div>
+            }
+            @if (notification.pickupDate || notification.pickupTime) {
+              <div class="modal-meta">
+                <ion-icon name="calendar-outline"></ion-icon>
+                <span>Pickup: {{ getPickupDisplay(notification) }}</span>
+              </div>
+            }
+            @if (notification.payslipMonth && notification.payslipYear) {
+              <div class="modal-meta">
+                <ion-icon name="calendar-outline"></ion-icon>
+                <span>{{ notification.payslipMonth }} {{ notification.payslipYear }}</span>
+              </div>
+            }
+            @if (notification.amount !== undefined) {
+              <div class="modal-amount">
+                Amount: {{ formatCurrency(notification.amount) }}
+              </div>
+            }
+          </div>
+          <div class="modal-actions">
+            @if (!notification.read) {
+              <ion-button expand="block" (click)="markAsReadFromModal()">
+                <ion-icon name="checkmark-done-outline" slot="start"></ion-icon>
+                Mark as Read
+              </ion-button>
+            }
+            @let actionConfig = getActionButtonConfig(notification);
+            <ion-button expand="block" [fill]="actionConfig.route ? 'solid' : 'outline'" (click)="handleActionClick(notification)">
+              <ion-icon [name]="actionConfig.icon" slot="start"></ion-icon>
+              {{ actionConfig.text }}
+            </ion-button>
+          </div>
+        </ion-content>
+      }
+    </ng-template>
+  </ion-modal>
+
   <div class="notifications-container">
     <!-- Header -->
     <div class="notifications-header">
@@ -73,7 +167,9 @@
                     <span class="notification-time">{{ formatTimestamp(notification.timestamp) }}</span>
                   </div>
                   
-                  <p class="notification-message">{{ notification.message }}</p>
+                  @if (notification.message) {
+                    <p class="notification-message">{{ notification.message }}</p>
+                  }
                   
                   @if (notification.orderId) {
                     <div class="notification-meta">
