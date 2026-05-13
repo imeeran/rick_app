@@ -33,9 +33,25 @@
 
       @for (ride of pendingRides; track ride.id) {
         <ion-card class="ride-card">
-          <ion-card-header>
-            <ion-card-title>{{ isInProgress(ride) ? 'Active Ride' : 'Ride Request' }}</ion-card-title>
-          </ion-card-header>
+          <div class="card-header-top">
+            <ion-card-header>
+              <ion-card-title>{{ isInProgress(ride) ? 'Active Ride' : 'Ride Request' }}</ion-card-title>
+            </ion-card-header>
+            @if (isInProgress(ride)) {
+              <ion-button 
+                size="small"
+                color="warning" 
+                (click)="notifyPassenger(ride)"
+                [disabled]="isUpdating(ride.id) || !isOnline"
+                class="notify-top-btn">
+                @if (isUpdating(ride.id)) {
+                  <ion-spinner name="crescent"></ion-spinner>
+                } @else {
+                  <ion-icon name="rocket-outline"></ion-icon>
+                }
+              </ion-button>
+            }
+          </div>
           <ion-card-content>
             <div class="ride-info">
               <div class="passenger-info">
@@ -78,7 +94,22 @@
                       Complete
                     }
                   </ion-button>
+                  <ion-button 
+                    expand="block" 
+                    color="primary" 
+                    (click)="startRide(ride)"
+                    [disabled]="isUpdating(ride.id) || !isOnline"
+                    [class.button-disabled]="!isOnline"
+                    class="start-ride-btn">
+                    @if (isUpdating(ride.id)) {
+                      <ion-spinner name="crescent"></ion-spinner>
+                    } @else {
+                      <ion-icon name="play-outline" slot="start"></ion-icon>
+                      Start Ride
+                    }
+                  </ion-button>
                 } @else {
+                  
                   <ion-button 
                     expand="block" 
                     color="danger" 

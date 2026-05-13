@@ -339,7 +339,8 @@ export class BookingPage implements OnInit, OnDestroy, AfterViewInit {
             status: booking.status,
             pickupLocation: booking.pickupLocation,
             dropoffLocation: booking.dropoffLocation,
-            passengerName: booking.passengerName
+            passengerName: booking.passengerName,
+            passengerEmail: booking.passengerEmail
           }));
 
       this.filterBookings();

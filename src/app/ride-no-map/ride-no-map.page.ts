@@ -23,13 +23,15 @@ import {
   closeCircleOutline,
   warningOutline,
   calendarOutline,
-  checkmarkDoneOutline
+  checkmarkDoneOutline,
+  rocketOutline
 } from 'ionicons/icons';
 import { BookingsService, Booking } from '../services/bookings.service';
 import { AuthService } from '../services/auth.service';
 import { environment } from '../../environments/environment';
 import { throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import { Storage } from '@ionic/storage-angular';
 
 @Component({
   selector: 'app-ride-no-map',
@@ -53,6 +55,7 @@ export class RideNoMapPage implements OnInit, ViewWillEnter {
   isLoadingBookings = false;
   updatingRideId: string | null = null; // Track which ride is being accepted/rejected
   private apiUrl = environment.apiUrl;
+  notify: boolean = false;
 
   constructor(
     private bookingsService: BookingsService,
@@ -60,7 +63,8 @@ export class RideNoMapPage implements OnInit, ViewWillEnter {
     private authService: AuthService,
     private toastController: ToastController,
     private alertController: AlertController,
-    private router: Router
+    private router: Router,
+    private storage: Storage
   ) {
     addIcons({
       'location-outline': locationOutline,
@@ -70,7 +74,8 @@ export class RideNoMapPage implements OnInit, ViewWillEnter {
       'close-circle-outline': closeCircleOutline,
       'warning-outline': warningOutline,
       'calendar-outline': calendarOutline,
-      'checkmark-done-outline': checkmarkDoneOutline
+      'checkmark-done-outline': checkmarkDoneOutline,
+      'rocket-outline': rocketOutline
     });
   }
 
@@ -132,7 +137,6 @@ export class RideNoMapPage implements OnInit, ViewWillEnter {
 
           const norm = (s: string) =>
             (s === 'in_progress' ? 'in-progress' : s) as Booking['status'];
-
           const active = bookings.filter(b => {
             const st = String(b.status);
             return st === 'pending' || st === 'in-progress' || st === 'in_progress';
@@ -144,13 +148,14 @@ export class RideNoMapPage implements OnInit, ViewWillEnter {
           });
 
           this.pendingRides = active.map(b => ({
-            id: b.id,
+            id: String(b.id),
             date: b.date,
             time: b.time || '00:00:00',
             status: norm(String(b.status)),
             pickupLocation: b.pickupLocation,
             dropoffLocation: b.dropoffLocation,
-            passengerName: b.passengerName
+            passengerName: b.passengerName,
+            passengerEmail: b.passengerEmail
           }));
 
           this.isLoadingBookings = false;
@@ -226,15 +231,8 @@ export class RideNoMapPage implements OnInit, ViewWillEnter {
       });
   }
 
-  acceptRide(booking: Booking) {
-    if (this.updatingRideId || !this.isOnline) {
-      if (!this.isOnline) {
-        this.showOfflineToast('Please go online to accept rides.');
-      }
-      return;
-    }
-
-    this.updatingRideId = booking.id;
+  performAcceptRide(booking: Booking) {
+    this.updatingRideId = String(booking.id);
 
     this.http.post<{ success?: boolean; message?: string }>(`${this.apiUrl}/app/bookings/update-status`, {
       bookingId: booking.id,
@@ -267,6 +265,31 @@ export class RideNoMapPage implements OnInit, ViewWillEnter {
       });
   }
 
+  async acceptRide(booking: Booking) {
+    if (this.updatingRideId || !this.isOnline) {
+      if (!this.isOnline) {
+        this.showOfflineToast('Please go online to accept rides.');
+      }
+      return;
+    }
+
+    const completeConfirm = await this.alertController.create({
+      header: 'Accept Ride',
+      message: 'Are you sure you want to accept this ride? This cannot be undone.',
+      buttons: [
+        { text: 'Cancel', role: 'cancel' },
+        {
+          text: 'Accept',
+          role: 'confirm',
+          handler: () => {
+            this.performAcceptRide(booking);
+          }
+        }
+      ]
+    });
+    await completeConfirm.present();
+  }
+
   async completeRide(booking: Booking) {
     if (this.updatingRideId || !this.isOnline) {
       if (!this.isOnline) {
@@ -276,7 +299,7 @@ export class RideNoMapPage implements OnInit, ViewWillEnter {
     }
 
     const completeConfirm = await this.alertController.create({
-      header: 'Complete ride',
+      header: 'Complete Ride',
       message: 'Mark this ride as completed? This cannot be undone.',
       buttons: [
         { text: 'Cancel', role: 'cancel' },
@@ -295,7 +318,7 @@ export class RideNoMapPage implements OnInit, ViewWillEnter {
   private performCompleteRide(booking: Booking) {
     if (this.updatingRideId) return;
 
-    this.updatingRideId = booking.id;
+    this.updatingRideId = String(booking.id);
 
     this.http.post<{ success?: boolean; message?: string }>(`${this.apiUrl}/app/bookings/update-status`, {
       bookingId: booking.id,
@@ -321,19 +344,121 @@ export class RideNoMapPage implements OnInit, ViewWillEnter {
       });
   }
 
-  isInProgress(ride: Booking): boolean {
-    return ride.status === 'in-progress';
-  }
-
-  rejectRide(booking: Booking) {
+  async startRide(booking: Booking) {
     if (this.updatingRideId || !this.isOnline) {
       if (!this.isOnline) {
-        alert('Please go online to reject rides.');
+        this.showOfflineToast('Please go online to start rides.');
       }
       return;
     }
 
-    this.updatingRideId = booking.id;
+    const confirmStart = await this.alertController.create({
+      header: 'Start Ride',
+      message: 'Are you sure you want to start this ride?',
+      buttons: [
+        { text: 'Cancel', role: 'cancel' },
+        {
+          text: 'Start',
+          role: 'confirm',
+          handler: () => {
+            this.performStartRide(booking);
+          }
+        }
+      ]
+    });
+    await confirmStart.present();
+  }
+
+  private performStartRide(booking: Booking) {
+    if (this.updatingRideId) return;
+
+    this.updatingRideId = String(booking.id);
+
+    this.http.post<{ success?: boolean; message?: string }>(`${this.apiUrl}/app/bookings/update-status`, {
+      bookingId: booking.id,
+      status: 'in-progress'
+    })
+      .pipe(
+        catchError((error: HttpErrorResponse | Error) => {
+          const apiError = (error as HttpErrorResponse).error as { message?: string };
+          const errorMessage = apiError?.message || 'Failed to start ride';
+          this.updatingRideId = null;
+          alert(`Failed to start ride: ${errorMessage}`);
+          return throwError(() => new Error(errorMessage));
+        })
+      )
+      .subscribe({
+        next: () => {
+          this.updatingRideId = null;
+          const idx = this.pendingRides.findIndex(r => r.id === booking.id);
+          if (idx >= 0) {
+            this.pendingRides = [
+              ...this.pendingRides.slice(0, idx),
+              { ...this.pendingRides[idx], status: 'in-progress' },
+              ...this.pendingRides.slice(idx + 1)
+            ];
+          }
+        },
+        error: () => {
+          this.updatingRideId = null;
+        }
+      });
+  }
+
+  isInProgress(ride: Booking): boolean {
+    return ride.status === 'in-progress';
+  }
+
+  performNotifyPassenger(booking: Booking) {
+    this.http.post<{ success?: boolean; message?: string }>(`${this.apiUrl}/app/bookings/notify-passenger`, {
+      passengerEmail: booking.passengerEmail,
+      passengerName: booking.passengerName
+    })
+      .pipe(
+        catchError((error: HttpErrorResponse | Error) => {
+          const apiError = (error as HttpErrorResponse).error as { message?: string };
+          const errorMessage = apiError?.message || 'Failed to notify passenger';
+          alert(`Failed to notify passenger: ${errorMessage}`);
+          return throwError(() => new Error(errorMessage));
+        })
+      )
+      .subscribe({
+        next: () => {
+          // this.storage.set('passenger_notified', true);
+        },
+        error: () => {
+          // this.storage.set('passenger_notified', false);
+        }
+      });
+  } 
+
+  async notifyPassenger(booking: Booking) {
+    if (this.updatingRideId || !this.isOnline) {
+      if (!this.isOnline) {
+        this.showOfflineToast('Please go online to complete rides.');
+      }
+      return;
+    }
+
+    const completeConfirm = await this.alertController.create({
+      header: 'Notify',
+      message: 'Are you sure you want to send a notification to this passenger that you reached the pickup location?',
+      buttons: [
+        { text: 'Cancel', role: 'cancel' },
+        {
+          text: 'Notify',
+          role: 'confirm',
+          handler: () => {
+            this.performNotifyPassenger(booking);
+          }
+        }
+      ]
+    });
+    await completeConfirm.present();
+  }
+
+  performRejecteRide(booking: any){
+    this.updatingRideId = String(booking.id);
 
     this.http.post<{ success?: boolean; message?: string }>(`${this.apiUrl}/app/bookings/update-status`, {
       bookingId: booking.id,
@@ -359,8 +484,33 @@ export class RideNoMapPage implements OnInit, ViewWillEnter {
       });
   }
 
-  isUpdating(bookingId: string): boolean {
-    return this.updatingRideId === bookingId;
+  async rejectRide(booking: Booking) {
+    if (this.updatingRideId || !this.isOnline) {
+      if (!this.isOnline) {
+        alert('Please go online to reject rides.');
+      }
+      return;
+    }
+
+    const completeConfirm = await this.alertController.create({
+      header: 'Reject Ride',
+      message: 'Are you sure you want to reject this ride? This cannot be undone.',
+      buttons: [
+        { text: 'Cancel', role: 'cancel' },
+        {
+          text: 'Reject',
+          role: 'confirm',
+          handler: () => {
+            this.performRejecteRide(booking);
+          }
+        }
+      ]
+    });
+    await completeConfirm.present();
+  }
+
+  isUpdating(bookingId: string | number): boolean {
+    return this.updatingRideId === String(bookingId);
   }
 
   showAllRides() {

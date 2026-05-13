@@ -510,7 +510,8 @@ export class RidePage implements OnInit, AfterViewInit, OnDestroy, ViewDidEnter,
               status: norm(String(b.status)),
               pickupLocation: b.pickupLocation,
               dropoffLocation: b.dropoffLocation,
-              passengerName: b.passengerName
+              passengerName: b.passengerName,
+              passengerEmail: b.passengerEmail
             };
             this.isRideAccepted.set(true);
             console.log('RidePage: Found in-progress ride:', this.upcomingRide);
@@ -524,7 +525,8 @@ export class RidePage implements OnInit, AfterViewInit, OnDestroy, ViewDidEnter,
               status: b.status,
               pickupLocation: b.pickupLocation,
               dropoffLocation: b.dropoffLocation,
-              passengerName: b.passengerName
+              passengerName: b.passengerName,
+              passengerEmail: b.passengerEmail
             };
             this.isRideAccepted.set(false);
             console.log('RidePage: Found pending ride:', this.upcomingRide);

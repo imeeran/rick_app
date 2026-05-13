@@ -9,6 +9,7 @@ export interface Booking {
   pickupLocation: string;
   dropoffLocation: string;
   passengerName: string;
+  passengerEmail: string;
 }
 
 @Injectable({

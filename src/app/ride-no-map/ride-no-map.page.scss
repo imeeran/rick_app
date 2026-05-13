@@ -144,14 +144,31 @@ ion-content {
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
 }
 
-.ride-card ion-card-header {
+.card-header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   padding: 12px 16px 8px;
+  gap: 12px;
+}
+
+.ride-card ion-card-header {
+  padding: 0;
 }
 
 .ride-card ion-card-title {
   font-size: 16px;
   font-weight: 700;
   color: var(--ion-color-primary);
+}
+
+.notify-top-btn {
+  --padding-start: 8px;
+  --padding-end: 8px;
+  --padding-top: 6px;
+  --padding-bottom: 6px;
+  min-width: auto;
+  min-height: auto;
 }
 
 .ride-card ion-card-content {
@@ -282,6 +299,11 @@ ion-content {
     flex: 1 1 100%;
     --background: var(--ion-color-success);
     --background-hover: var(--ion-color-success-shade);
+  }
+  .start-ride-btn{
+    flex: 1 1 100%;
+    --background: var(--ion-color-primary);
+    --background-hover: var(--ion-color-primary-shade);
   }
 }
 
