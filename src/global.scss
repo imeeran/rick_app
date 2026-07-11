@@ -295,4 +295,34 @@ ion-list {
   --background: var(--ion-background-color) !important;
   background: var(--ion-background-color) !important;
 }
+// .custom-date {
+//   background: #2196F3;
+//   color: white;
+//   padding: 4px 12px;
+//   border-radius: 4px 0 0 4px;
+// }
 
+ion-searchbar{
+  --border-radius: 10px;
+  padding: 0 16px;
+}
+ion-searchbar .searchbar-input-container{
+  border: 1px solid rgba(var(--ion-color-primary-rgb), 0.2);
+    border-radius: 10px;
+}
+
+ion-modal {
+  --height: 50%;
+  --border-radius: 16px;
+  --box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+
+ion-modal::part(backdrop) {
+  background: rgba(209, 213, 219);
+  opacity: 1;
+}
+
+ion-modal ion-toolbar {
+  --background: rgb(14 116 144);
+  --color: white;
+}

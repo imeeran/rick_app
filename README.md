@@ -125,3 +125,6 @@ See **[PLAY_STORE_UPLOAD.md](PLAY_STORE_UPLOAD.md)** for keystore setup, signing
 ## Special notification sound while assgned driver android
 Channel ID: 053fa270-1289-4c49-b4f2-d137e76283f5
 
+## Api key
+AIzaSyAalDZQD6ICTsO5rUE1qv_nCmGLfZ6TeXU
+

@@ -5,7 +5,7 @@
 export const environment = {
   production: false,
   version: '1.0.3',
-  buildNumber: '5',
+  buildNumber: '7',
   apiUrl: 'http://localhost:3000/api', // Direct URL (bypasses proxy)
   backendUrl: 'http://localhost:3000',
 

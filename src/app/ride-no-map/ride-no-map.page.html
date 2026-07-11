@@ -1,7 +1,7 @@
 <ion-content [fullscreen]="true">
   <!-- Header with Online Toggle -->
   <div class="page-header">
-    <h1 class="page-title">Upcoming Rides</h1>
+    <h1 class="page-title">Rides</h1>
     <button 
       class="online-toggle-btn" 
       [class.online]="isOnline"
@@ -11,6 +11,107 @@
       <span class="toggle-label">{{ isOnline ? 'Online' : 'Offline' }}</span>
     </button>
   </div>
+
+<!-- <ion-modal
+  [isOpen]="isWalkinModalOpen()"
+  (didDismiss)="closeWalkinModal()"
+  [initialBreakpoint]="1"
+  [breakpoints]="[0, 0.5, 0.75, 1]"
+  class="walkin-modal">
+  <ng-template>
+    <ion-header>
+      <ion-toolbar>
+        <ion-title>New Booking</ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="closeWalkinModal()">
+            <ion-icon class="ico" name="close-outline"></ion-icon>
+          </ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content>
+    </ion-content>
+  </ng-template>
+</ion-modal> -->
+<ion-modal #modal trigger="open-modal">
+    <ng-template>
+      <ion-content>
+        <ion-toolbar>
+          <ion-title>Walkin Trip</ion-title>
+          <ion-buttons slot="end">
+            <ion-button  (click)="modal.dismiss()">Close</ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+        <!-- ====== PICKUP LOCATION with Overlay ====== -->
+        <form [formGroup]="pickupForm" (ngSubmit)="createBooking()">
+            <div class="location-container">
+              <!-- <ion-item class="itms location-item"> -->
+                <!-- <ion-label position="stacked">Pickup <ion-text color="danger">*</ion-text></ion-label> -->
+                <ion-searchbar
+                  formControlName="pickupLocation"
+                  (ionInput)="onPickupInput($event)"
+                  (ionFocus)="onPickupFocus()"
+                  (ionBlur)="onPickupBlur()"
+                  placeholder="Enter pickup location"
+                  animated
+                  debounce="300"
+                  class="location-searchbar"
+                ></ion-searchbar>
+              <!-- </ion-item> -->
+
+              <!-- Pickup Predictions Overlay -->
+              @if (showPickupPredictions && pickupPredictions.length > 0) {
+                <div class="predictions-overlay">
+                  <ion-list>
+                    @for (prediction of pickupPredictions; track prediction.place_id) {
+                      <ion-item 
+                        button 
+                        (click)="selectPickupPrediction(prediction)"
+                        (mousedown)="$event.preventDefault()"
+                      >
+                        <ion-label>
+                          <h2>{{ prediction.structured_formatting?.main_text || prediction.description }}</h2>
+                          <p>{{ prediction.structured_formatting?.secondary_text || '' }}</p>
+                        </ion-label>
+                      </ion-item>
+                    }
+                  </ion-list>
+                </div>
+              }
+            </div>
+            <ion-item lines="none">
+              <ion-button expand="block" fill="outline" (click)="useCurrentLocationForPickup()" type="button">
+                <ion-icon name="locate" slot="start"></ion-icon>
+                Use Current Location
+              </ion-button>
+            </ion-item>
+            <!-- ====== GUEST INFO ====== -->
+            <ion-item class="itms">
+              <ion-label position="stacked">Guest name</ion-label>
+              <ion-input formControlName="guestName" type="text" placeholder="Enter guest name"></ion-input>
+            </ion-item>
+
+            <ion-item class="itms">
+              <ion-label position="stacked">Mobile number</ion-label>
+              <ion-input formControlName="mobileNumber" type="tel" placeholder="Enter mobile number"></ion-input>
+            </ion-item>
+            
+            <ion-footer class="ion-padding footerbtn">
+              <ion-button expand="block" type="submit" [disabled]="isSubmitting">
+                Create Walk In Trip
+              </ion-button>
+            </ion-footer>
+        </form>
+      </ion-content>
+      
+    </ng-template>
+  </ion-modal>
+
+  <ion-fab horizontal="end" vertical="bottom" slot="fixed" id="open-modal">
+    <ion-fab-button>
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
 
   @if (!isOnline) {
     <div class="offline-alert">

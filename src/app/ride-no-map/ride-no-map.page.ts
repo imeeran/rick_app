@@ -10,10 +10,9 @@ import {
   IonCardContent,
   IonCardHeader,
   IonCardTitle,
-  IonSpinner
-} from '@ionic/angular/standalone';
+  IonSpinner, IonFab, IonFabButton, IonModal, IonButtons, IonToolbar, IonTitle, IonList, IonItem, IonLabel, IonSearchbar, IonFooter } from '@ionic/angular/standalone';
 import { ToastController, AlertController } from '@ionic/angular/standalone';
-import { ViewWillEnter } from '@ionic/angular';
+import { ViewWillEnter, LoadingController } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { 
   locationOutline, 
@@ -24,7 +23,9 @@ import {
   warningOutline,
   calendarOutline,
   checkmarkDoneOutline,
-  rocketOutline
+  rocketOutline,
+  add,
+  location
 } from 'ionicons/icons';
 import { BookingsService, Booking } from '../services/bookings.service';
 import { AuthService } from '../services/auth.service';
@@ -32,12 +33,15 @@ import { environment } from '../../environments/environment';
 import { throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { Storage } from '@ionic/storage-angular';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { LocationService } from '../services/location.service';
+import { PlacesService } from '../services/places.service';
 
 @Component({
   selector: 'app-ride-no-map',
   templateUrl: 'ride-no-map.page.html',
   styleUrls: ['ride-no-map.page.scss'],
-  imports: [
+  imports: [ IonFooter, IonSearchbar, IonLabel, IonItem, IonList, IonTitle, IonToolbar, IonButtons, IonModal, IonFabButton, IonFab,ReactiveFormsModule,
     CommonModule,
     IonContent,
     IonButton,
@@ -56,15 +60,28 @@ export class RideNoMapPage implements OnInit, ViewWillEnter {
   updatingRideId: string | null = null; // Track which ride is being accepted/rejected
   private apiUrl = environment.apiUrl;
   notify: boolean = false;
+  isWalkinModalOpen = signal(false);
+  pickupForm: FormGroup;
+  dropOffForm: FormGroup;
+  // ---- Location Autocomplete Properties ----
+  pickupQuery = '';
+  pickupPredictions: google.maps.places.AutocompletePrediction[] = [];
+  showPickupPredictions = false;
+  activeField: 'pickup' | 'dropoff' | null = null;
+  isSubmitting = false;
 
   constructor(
     private bookingsService: BookingsService,
     private http: HttpClient,
     private authService: AuthService,
-    private toastController: ToastController,
+    private toastCtrl: ToastController,
     private alertController: AlertController,
     private router: Router,
-    private storage: Storage
+    private storage: Storage,
+    private fb: FormBuilder,
+    private loadingCtrl: LoadingController,
+    private locationService: LocationService,
+    private placesService: PlacesService
   ) {
     addIcons({
       'location-outline': locationOutline,
@@ -75,7 +92,27 @@ export class RideNoMapPage implements OnInit, ViewWillEnter {
       'warning-outline': warningOutline,
       'calendar-outline': calendarOutline,
       'checkmark-done-outline': checkmarkDoneOutline,
-      'rocket-outline': rocketOutline
+      'rocket-outline': rocketOutline,
+      'add': add,
+      'locate': location
+    });
+    const now = new Date();
+    this.pickupForm = this.fb.group({
+      pickupLocation: ['', Validators.required],
+      pickupLatLon: [''],
+      bookingDate: [now.toISOString()],
+      bookingTime: [now.toTimeString().slice(0, 5)],
+      rideType: ['WALKIN'],
+      guestName: [''],
+      mobileNumber: ['',[Validators.pattern('^[0-9]{7,15}$')]],
+      rickId: [this.authService.getStoredRick() || '']
+    });
+    this.dropOffForm = this.fb.group({
+      dropoffLocation: ['', Validators.required],
+      dropLatLon: [''],
+      totalCharge: [null, Validators.required],
+      hours: [null],
+      rickId: [this.authService.getStoredRick() || '']
     });
   }
 
@@ -520,7 +557,7 @@ export class RideNoMapPage implements OnInit, ViewWillEnter {
   }
 
   async showOfflineToast(message: string) {
-    const toast = await this.toastController.create({
+    const toast = await this.toastCtrl.create({
       message: message,
       duration: 3000,
       position: 'top',
@@ -558,5 +595,118 @@ export class RideNoMapPage implements OnInit, ViewWillEnter {
     const ampm = hour24 >= 12 ? 'PM' : 'AM';
     const formattedTime = `${hour12}:${minutes.padStart(2, '0')} ${ampm}`;
     return `${formattedDate} at ${formattedTime}`;
+  }
+  createWalking() {
+    this.isWalkinModalOpen.set(true);
+  }
+
+  closeWalkinModal() {
+    this.isWalkinModalOpen.set(false);
+  }
+
+  // ---- PICKUP AUTOCOMPLETE ----
+  onPickupInput(event: any) {
+    const query = event.detail.value;
+    this.pickupQuery = query;
+    // Update form control (if using ngModel separately, but we use formControlName)
+    this.pickupForm.patchValue({ pickupLocation: query });
+    if (!query || query.trim().length === 0) {
+      this.pickupPredictions = [];
+      this.showPickupPredictions = false;
+      return;
+    }
+    this.placesService.getPlacePredictions(query)
+      .then(predictions => {
+        this.pickupPredictions = predictions;
+        this.showPickupPredictions = predictions.length > 0 && this.activeField === 'pickup';
+      })
+      .catch(err => {
+        console.error('Error fetching pickup predictions', err);
+        this.showPickupPredictions = false;
+      });
+  }
+  onPickupFocus() {
+    this.activeField = 'pickup';
+    if (this.pickupPredictions.length > 0) {
+      this.showPickupPredictions = true;
+    }
+  }
+  onPickupBlur() {
+    setTimeout(() => {
+      this.showPickupPredictions = false;
+      if (this.activeField === 'pickup') this.activeField = null;
+    }, 200);
+  }
+  async selectPickupPrediction(prediction: google.maps.places.AutocompletePrediction) {
+    try {
+      const details = await this.placesService.getPlaceDetails(prediction.place_id);
+      const address = details.formatted_address || prediction.description;
+      this.pickupForm.patchValue({
+        pickupLocation: address,
+        pickupLatLon: details.geometry?.location ? 
+          `${details.geometry.location.lat()},${details.geometry.location.lng()}` : ''
+      });
+      this.pickupQuery = address;
+      this.pickupPredictions = [];
+      this.showPickupPredictions = false;
+    } catch (error) {
+      console.error('Error getting pickup details', error);
+      this.showToast('Failed to get location details', 'danger');
+    }
+  }
+
+  async useCurrentLocationForPickup() {
+    const loader = await this.loadingCtrl.create({
+      message: 'Getting your pickup location...',
+    });
+    await loader.present();
+
+    try {
+      const position = await this.locationService.getCurrentPosition();
+      if (!position) {
+        await loader.dismiss();
+        this.showToast('Unable to get location. Please enable GPS.', 'danger');
+        return;
+      }
+
+      const lat = position.coords.latitude;
+      const lng = position.coords.longitude;
+
+      // Reverse geocode to get address
+      const result = await this.placesService.reverseGeocode(lat, lng);
+      const address = result.formatted_address || `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}`;
+
+      // Update pickupForm
+      this.pickupForm.patchValue({
+        pickupLocation: address,
+        pickupLatLon: `${lat},${lng}`
+      });
+
+      await loader.dismiss();
+      this.showToast('Pickup location set', 'success');
+    } catch (error) {
+      await loader.dismiss();
+      console.error('Error getting pickup location:', error);
+      this.showToast('Failed to get address.', 'danger');
+    }
+  }
+   async createBooking(): Promise<void> {
+    console.log('Creating booking with data:', this.pickupForm.value, this.dropOffForm.value);
+    if (this.pickupForm.invalid) {
+      this.pickupForm.markAllAsTouched();
+      this.showToast('Please complete the required fields.', 'warning');
+      return;
+    }
+  }
+
+  // Toast Display Here
+  private async showToast(message: string, color: 'success' | 'warning' | 'danger' = 'success'): Promise<void> {
+    const toast = await this.toastCtrl.create({
+      message,
+      duration: 2500,
+      color,
+      position: 'bottom',
+    });
+    await toast.present();
   }
 }

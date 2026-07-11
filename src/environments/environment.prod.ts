@@ -1,7 +1,7 @@
 export const environment = {
   production: true,
   version: '1.0.3',
-  buildNumber: '5',
+  buildNumber: '7',
   // apiUrl: 'http://13.61.16.44:3000/api',
   // backendUrl: 'http://13.61.16.44:3000',
   

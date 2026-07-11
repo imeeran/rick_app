@@ -169,12 +169,12 @@ export class PayslipPdfService {
     doc.setFont('helvetica', 'normal');
     
     // Center the footer text
-    const footerText1 = 'Thank you for your business, Feel free to contact us at +97124467696 anytime.';
+    const footerText1 = 'For internal use only, Invalid for any legal or financial claims without company authorization.';
     const footerText1Width = doc.getTextWidth(footerText1);
     const footerText1X = (pageWidth - footerText1Width) / 2;
     doc.text(footerText1, footerText1X, finalY);
     
-    const footerText2 = 'www.ricklimo.com';
+    const footerText2 = 'For any queries, please contact us at any time. Email: Info@ricklimo.com | Web: www.ricklimo.com';
     const footerText2Width = doc.getTextWidth(footerText2);
     const footerText2X = (pageWidth - footerText2Width) / 2;
     doc.text(footerText2, footerText2X, finalY + 6);
@@ -253,7 +253,7 @@ export class PayslipPdfService {
             // Debit transactions - add to balance
             runningBalance += amount;
             transactions.push({
-              description: `${field} Payment From 1st to ${this.getLastDayOfMonth(payslip)} ${this.getMonthYear(payslip)}`,
+              description: field,
               debit: amount,
               credit: 0,
               balance: runningBalance,
@@ -263,7 +263,7 @@ export class PayslipPdfService {
             // Credit transactions - deduct from balance
             runningBalance -= amount;
             transactions.push({
-              description: `${field} Payment From 1st to ${this.getLastDayOfMonth(payslip)} ${this.getMonthYear(payslip)}`,
+              description: field,
               debit: 0,
               credit: amount,
               balance: runningBalance,
