@@ -12,102 +12,9 @@
     </button>
   </div>
 
-<!-- <ion-modal
-  [isOpen]="isWalkinModalOpen()"
-  (didDismiss)="closeWalkinModal()"
-  [initialBreakpoint]="1"
-  [breakpoints]="[0, 0.5, 0.75, 1]"
-  class="walkin-modal">
-  <ng-template>
-    <ion-header>
-      <ion-toolbar>
-        <ion-title>New Booking</ion-title>
-        <ion-buttons slot="end">
-          <ion-button (click)="closeWalkinModal()">
-            <ion-icon class="ico" name="close-outline"></ion-icon>
-          </ion-button>
-        </ion-buttons>
-      </ion-toolbar>
-    </ion-header>
-    <ion-content>
-    </ion-content>
-  </ng-template>
-</ion-modal> -->
-<ion-modal #modal trigger="open-modal">
-    <ng-template>
-      <ion-content>
-        <ion-toolbar>
-          <ion-title>Walkin Trip</ion-title>
-          <ion-buttons slot="end">
-            <ion-button  (click)="modal.dismiss()">Close</ion-button>
-          </ion-buttons>
-        </ion-toolbar>
-        <!-- ====== PICKUP LOCATION with Overlay ====== -->
-        <form [formGroup]="pickupForm" (ngSubmit)="createBooking()">
-            <div class="location-container">
-              <!-- <ion-item class="itms location-item"> -->
-                <!-- <ion-label position="stacked">Pickup <ion-text color="danger">*</ion-text></ion-label> -->
-                <ion-searchbar
-                  formControlName="pickupLocation"
-                  (ionInput)="onPickupInput($event)"
-                  (ionFocus)="onPickupFocus()"
-                  (ionBlur)="onPickupBlur()"
-                  placeholder="Enter pickup location"
-                  animated
-                  debounce="300"
-                  class="location-searchbar"
-                ></ion-searchbar>
-              <!-- </ion-item> -->
 
-              <!-- Pickup Predictions Overlay -->
-              @if (showPickupPredictions && pickupPredictions.length > 0) {
-                <div class="predictions-overlay">
-                  <ion-list>
-                    @for (prediction of pickupPredictions; track prediction.place_id) {
-                      <ion-item 
-                        button 
-                        (click)="selectPickupPrediction(prediction)"
-                        (mousedown)="$event.preventDefault()"
-                      >
-                        <ion-label>
-                          <h2>{{ prediction.structured_formatting?.main_text || prediction.description }}</h2>
-                          <p>{{ prediction.structured_formatting?.secondary_text || '' }}</p>
-                        </ion-label>
-                      </ion-item>
-                    }
-                  </ion-list>
-                </div>
-              }
-            </div>
-            <ion-item lines="none">
-              <ion-button expand="block" fill="outline" (click)="useCurrentLocationForPickup()" type="button">
-                <ion-icon name="locate" slot="start"></ion-icon>
-                Use Current Location
-              </ion-button>
-            </ion-item>
-            <!-- ====== GUEST INFO ====== -->
-            <ion-item class="itms">
-              <ion-label position="stacked">Guest name</ion-label>
-              <ion-input formControlName="guestName" type="text" placeholder="Enter guest name"></ion-input>
-            </ion-item>
 
-            <ion-item class="itms">
-              <ion-label position="stacked">Mobile number</ion-label>
-              <ion-input formControlName="mobileNumber" type="tel" placeholder="Enter mobile number"></ion-input>
-            </ion-item>
-            
-            <ion-footer class="ion-padding footerbtn">
-              <ion-button expand="block" type="submit" [disabled]="isSubmitting">
-                Create Walk In Trip
-              </ion-button>
-            </ion-footer>
-        </form>
-      </ion-content>
-      
-    </ng-template>
-  </ion-modal>
-
-  <ion-fab horizontal="end" vertical="bottom" slot="fixed" id="open-modal">
+  <ion-fab horizontal="end" vertical="bottom" slot="fixed" (click)="openWalkinModal()">
     <ion-fab-button>
       <ion-icon name="add"></ion-icon>
     </ion-fab-button>
@@ -138,7 +45,7 @@
             <ion-card-header>
               <ion-card-title>{{ isInProgress(ride) ? 'Active Ride' : 'Ride Request' }}</ion-card-title>
             </ion-card-header>
-            @if (isInProgress(ride)) {
+            @if (isInProgress(ride) && ride.rideType !== 'WALKIN') {
               <ion-button 
                 size="small"
                 color="warning" 
@@ -257,3 +164,136 @@
     </div>
   }
 </ion-content>
+
+  <ion-modal class="picModal" #modal [isOpen]="isWalkinModalOpenPickup()" (didDismiss)="closeWalkinModalPickup()">
+    <ng-template>
+      <ion-content>
+        <ion-toolbar>
+          <ion-title>Walkin Trip</ion-title>
+          <ion-buttons slot="end">
+            <ion-button  (click)="modal.dismiss()">Close</ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+        <!-- ====== PICKUP LOCATION with Overlay ====== -->
+        <form [formGroup]="pickupForm">
+          <div class="location-container">
+            <ion-searchbar
+              formControlName="pickupLocation"
+              (ionInput)="onPickupInput($event)"
+              (ionFocus)="onPickupFocus()"
+              (ionBlur)="onPickupBlur()"
+              placeholder="Enter pickup location"
+              animated
+              debounce="300"
+              class="location-searchbar"
+            ></ion-searchbar>
+
+            <!-- Pickup Predictions Overlay -->
+           @if (showPickupPredictions && pickupPredictions.length > 0) {
+            <div class="predictions-overlay">
+              <ion-list>
+                @for (suggestion of pickupPredictions; track suggestion.placePrediction?.placeId) {
+                  <ion-item 
+                    button 
+                    (click)="selectPickupPrediction(suggestion)"
+                    (mousedown)="$event.preventDefault()"
+                  >
+                    <ion-label>
+                      <h2>{{ suggestion.placePrediction?.text?.text || 'Unknown' }}</h2>
+                      <!-- <p>{{ suggestion.placePrediction?.structuredFormat?.secondaryText?.text || '' }}</p> -->
+                    </ion-label>
+                  </ion-item>
+                }
+              </ion-list>
+            </div>
+          }
+          </div>
+            <ion-button expand="block" fill="outline" (click)="useCurrentLocationForPickupandDropoff('pickup')" type="button">
+              <ion-icon name="locate" slot="start"></ion-icon>
+              Use Current Location
+            </ion-button>
+            <ion-button expand="block" type="submit" (click)="createWalkinRide()" [disabled]="isSubmitting" class="walkin-btn">
+              Create Walk In Trip
+            </ion-button>
+        </form>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+  <ion-modal class="dropModal" #modal [isOpen]="isWalkinModalOpenDrop()" (didDismiss)="closeWalkinModalDrop()">
+    <ng-template>
+      <ion-content>
+        <ion-toolbar>
+          <ion-title>Walkin Trip</ion-title>
+          <ion-buttons slot="end">
+            <ion-button  (click)="closeWalkinModalDrop()">Close</ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+        <!-- ====== DROP LOCATION with Overlay ====== -->
+        <form [formGroup]="dropOffForm" (ngSubmit)="updateDropoff()">
+          <div class="location-container">
+            <ion-searchbar
+              formControlName="dropoffLocation"
+              (ionInput)="onDropInput($event)"
+              (ionFocus)="onDropFocus()"
+              (ionBlur)="onDropBlur()"
+              placeholder="Enter drop off location"
+              animated
+              debounce="300"
+              class="location-searchbar"
+            ></ion-searchbar>
+
+            <!-- Drop Predictions Overlay -->
+            @if (showDropPredictions && dropPredictions.length > 0) {
+              <div class="predictions-overlay">
+                <ion-list>
+                  @for (suggestion of dropPredictions; track suggestion.placePrediction?.placeId) {
+                    <ion-item 
+                      button 
+                      (click)="selectDropPrediction(suggestion)"
+                      (mousedown)="$event.preventDefault()"
+                    >
+                      <ion-label>
+                        <h2>{{ suggestion.placePrediction?.text?.text || 'Unknown' }}</h2>
+                        <!-- <h2>{{ suggestion.text || suggestion.place.name || 'Unknown' }}</h2>
+                        <p>{{ suggestion.place.formattedAddress || '' }}</p> -->
+                      </ion-label>
+                    </ion-item>
+                  }
+                </ion-list>
+              </div>
+            }
+          </div>
+          <ion-item lines="none">
+            <ion-button expand="block" fill="outline" (click)="useCurrentLocationForPickupandDropoff('dropoff')" type="button">
+              <ion-icon name="locate" slot="start"></ion-icon>
+              Use Current Location
+            </ion-button>
+          </ion-item>
+          <!-- ====== GUEST INFO ====== -->
+          <ion-item class="itms">
+            <ion-label position="stacked">Total Fare</ion-label>
+            <ion-input  formControlName="totalCharge" type="number" placeholder="Enter Total Fare"></ion-input>
+          </ion-item>
+          <ion-item class="itms">
+            <ion-label position="stacked">Guest name</ion-label>
+            <ion-input  formControlName="guestName" type="text" placeholder="Enter guest name"></ion-input>
+          </ion-item>
+
+          <ion-item class="itms">
+            <ion-label position="stacked">Mobile number</ion-label>
+            <ion-input  formControlName="mobileNumber" type="tel" (ionInput)="onMobileInput($event)" placeholder="Enter mobile number"></ion-input>
+          </ion-item>
+          <!-- Error message -->
+            @if(pickupForm.get('mobileNumber')?.invalid && pickupForm.get('mobileNumber')?.touched) {
+            <ion-text color="danger" style="margin-left: 20px; font-size: 0.8rem;">
+              Please enter a valid mobile number.
+            </ion-text>
+          }
+            <ion-button expand="block" type="submit" [disabled]="isSubmitting" class="walkin-btn">
+              Update Walk In Trip
+            </ion-button>
+        </form>
+      </ion-content>
+    </ng-template>
+  </ion-modal>

@@ -12,6 +12,7 @@ export interface Booking {
   dropoffLocation: string;
   passengerName: string;
   passengerEmail: string;
+  rideType: string;
 }
 
 // export interface WalkinBookingPayload {
@@ -60,7 +61,8 @@ export interface CreateBookingPayload {
   providedIn: 'root'
 })
 export class BookingsService {
-  private readonly bookingsEndpoint = `${environment.apiUrl}/app/bookings/create-booking`;
+  private readonly createWalkinEndpoint = `${environment.apiUrl}/app/bookings/create-walkin`;
+  private readonly UpdateWalkinEndpoint = `${environment.apiUrl}/app/bookings/update-walkin`;
 
   constructor(private http: HttpClient) {}
 
@@ -75,7 +77,10 @@ export class BookingsService {
   }
 
   createBooking(payload: CreateBookingPayload): Observable<any> {
-    return this.http.post(this.bookingsEndpoint, payload);
+    return this.http.post(this.createWalkinEndpoint, payload);
+  }
+   updateDropoffWalkin(payload: CreateBookingPayload): Observable<any> {
+    return this.http.patch(this.UpdateWalkinEndpoint, payload);
   }
 
   // createWalkinBooking(payload: WalkinBookingPayload): Observable<any> {

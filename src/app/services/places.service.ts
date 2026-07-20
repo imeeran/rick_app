@@ -3,48 +3,50 @@ import { Injectable } from '@angular/core';
 
 @Injectable({ providedIn: 'root' })
 export class PlacesService {
-  private autocompleteService: google.maps.places.AutocompleteService;
   private geocoder: google.maps.Geocoder;
 
   constructor() {
-    this.autocompleteService = new google.maps.places.AutocompleteService();
     this.geocoder = new google.maps.Geocoder();
   }
 
-  // Existing: get predictions
-  getPlacePredictions(input: string): Promise<google.maps.places.AutocompletePrediction[]> {
-    return new Promise((resolve, reject) => {
-      if (!input) {
-        resolve([]);
-        return;
-      }
-      this.autocompleteService.getPlacePredictions(
-        { input, types: ['geocode', 'establishment'] },
-        (predictions, status) => {
-          if (status === google.maps.places.PlacesServiceStatus.OK && predictions) {
-            resolve(predictions);
-          } else {
-            reject(status);
-          }
-        }
-      );
-    });
+  // ---- New Places API (New) Autocomplete ----
+  async getPlacePredictions(input: string): Promise<google.maps.places.AutocompleteSuggestion[]> {
+    if (!input || input.trim().length === 0) {
+      return [];
+    }
+
+    try {
+      const sessionToken = new google.maps.places.AutocompleteSessionToken();
+
+      const request: google.maps.places.AutocompleteRequest = {
+        input: input,
+        includedTypes: ['address'],   // ✅ Fixed: use includedTypes
+        sessionToken: sessionToken
+        // Optional: locationBias: { lat: 25.2048, lng: 55.2708 }
+      }as google.maps.places.AutocompleteRequest;
+
+      const response = await google.maps.places.AutocompleteSuggestion.fetchAutocompleteSuggestions(request);
+      return response.suggestions || [];
+    } catch (error) {
+      console.error('Autocomplete error:', error);
+      return [];
+    }
   }
 
-  // Existing: get details by place ID
+  // ---- Geocoding (Place Details) ----
   getPlaceDetails(placeId: string): Promise<google.maps.GeocoderResult> {
     return new Promise((resolve, reject) => {
       this.geocoder.geocode({ placeId }, (results, status) => {
         if (status === google.maps.GeocoderStatus.OK && results && results.length > 0) {
           resolve(results[0]);
         } else {
-          reject(status);
+          reject(new Error(`Geocoding failed: ${status}`));
         }
       });
     });
   }
 
-  // NEW: Reverse geocode coordinates to address
+  // ---- Reverse Geocoding ----
   reverseGeocode(lat: number, lng: number): Promise<google.maps.GeocoderResult> {
     return new Promise((resolve, reject) => {
       const latLng = new google.maps.LatLng(lat, lng);
@@ -52,7 +54,7 @@ export class PlacesService {
         if (status === google.maps.GeocoderStatus.OK && results && results.length > 0) {
           resolve(results[0]);
         } else {
-          reject(status);
+          reject(new Error(`Reverse geocoding failed: ${status}`));
         }
       });
     });

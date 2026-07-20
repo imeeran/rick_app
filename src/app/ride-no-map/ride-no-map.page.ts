@@ -10,7 +10,7 @@ import {
   IonCardContent,
   IonCardHeader,
   IonCardTitle,
-  IonSpinner, IonFab, IonFabButton, IonModal, IonButtons, IonToolbar, IonTitle, IonList, IonItem, IonLabel, IonSearchbar, IonFooter } from '@ionic/angular/standalone';
+  IonSpinner, IonFab, IonFabButton, IonModal, IonButtons, IonToolbar, IonTitle, IonList, IonItem, IonLabel, IonSearchbar, IonText } from '@ionic/angular/standalone';
 import { ToastController, AlertController } from '@ionic/angular/standalone';
 import { ViewWillEnter, LoadingController } from '@ionic/angular';
 import { addIcons } from 'ionicons';
@@ -25,23 +25,26 @@ import {
   checkmarkDoneOutline,
   rocketOutline,
   add,
-  location
+  location,
+  playOutline,
 } from 'ionicons/icons';
 import { BookingsService, Booking } from '../services/bookings.service';
 import { AuthService } from '../services/auth.service';
 import { environment } from '../../environments/environment';
-import { throwError } from 'rxjs';
+import { throwError, firstValueFrom } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { Storage } from '@ionic/storage-angular';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { LocationService } from '../services/location.service';
 import { PlacesService } from '../services/places.service';
+import { Position } from '@capacitor/geolocation';
+
 
 @Component({
   selector: 'app-ride-no-map',
   templateUrl: 'ride-no-map.page.html',
   styleUrls: ['ride-no-map.page.scss'],
-  imports: [ IonFooter, IonSearchbar, IonLabel, IonItem, IonList, IonTitle, IonToolbar, IonButtons, IonModal, IonFabButton, IonFab,ReactiveFormsModule,
+  imports: [IonText, IonSearchbar, IonLabel, IonItem, IonList, IonTitle, IonToolbar, IonButtons, IonModal, IonFabButton, IonFab,ReactiveFormsModule,
     CommonModule,
     IonContent,
     IonButton,
@@ -60,15 +63,20 @@ export class RideNoMapPage implements OnInit, ViewWillEnter {
   updatingRideId: string | null = null; // Track which ride is being accepted/rejected
   private apiUrl = environment.apiUrl;
   notify: boolean = false;
-  isWalkinModalOpen = signal(false);
+  isWalkinModalOpenPickup = signal(false);
+  isWalkinModalOpenDrop = signal(false);
   pickupForm: FormGroup;
   dropOffForm: FormGroup;
   // ---- Location Autocomplete Properties ----
   pickupQuery = '';
-  pickupPredictions: google.maps.places.AutocompletePrediction[] = [];
+  dropoffQuery = '';
+  pickupPredictions: google.maps.places.AutocompleteSuggestion[] = [];
   showPickupPredictions = false;
+  dropPredictions: google.maps.places.AutocompleteSuggestion[] = [];
+  showDropPredictions = false;
   activeField: 'pickup' | 'dropoff' | null = null;
   isSubmitting = false;
+  bookingIdForUpdate: any;
 
   constructor(
     private bookingsService: BookingsService,
@@ -94,7 +102,8 @@ export class RideNoMapPage implements OnInit, ViewWillEnter {
       'checkmark-done-outline': checkmarkDoneOutline,
       'rocket-outline': rocketOutline,
       'add': add,
-      'locate': location
+      'locate': location,
+      'play-outline': playOutline
     });
     const now = new Date();
     this.pickupForm = this.fb.group({
@@ -103,15 +112,14 @@ export class RideNoMapPage implements OnInit, ViewWillEnter {
       bookingDate: [now.toISOString()],
       bookingTime: [now.toTimeString().slice(0, 5)],
       rideType: ['WALKIN'],
-      guestName: [''],
-      mobileNumber: ['',[Validators.pattern('^[0-9]{7,15}$')]],
       rickId: [this.authService.getStoredRick() || '']
     });
     this.dropOffForm = this.fb.group({
       dropoffLocation: ['', Validators.required],
       dropLatLon: [''],
       totalCharge: [null, Validators.required],
-      hours: [null],
+      guestName: [''],
+      mobileNumber: ['', [Validators.pattern('^[0-9]{10,15}$')]],
       rickId: [this.authService.getStoredRick() || '']
     });
   }
@@ -183,7 +191,6 @@ export class RideNoMapPage implements OnInit, ViewWillEnter {
             const dateB = new Date(`${b.date}T${b.time || '00:00:00'}`).getTime();
             return dateA - dateB;
           });
-
           this.pendingRides = active.map(b => ({
             id: String(b.id),
             date: b.date,
@@ -192,7 +199,8 @@ export class RideNoMapPage implements OnInit, ViewWillEnter {
             pickupLocation: b.pickupLocation,
             dropoffLocation: b.dropoffLocation,
             passengerName: b.passengerName,
-            passengerEmail: b.passengerEmail
+            passengerEmail: b.passengerEmail,
+            rideType: b.rideType,
           }));
 
           this.isLoadingBookings = false;
@@ -344,7 +352,13 @@ export class RideNoMapPage implements OnInit, ViewWillEnter {
           text: 'Complete',
           role: 'confirm',
           handler: () => {
-            this.performCompleteRide(booking);
+            if(booking.rideType === 'WALKIN') {
+              this.bookingIdForUpdate = booking.id;
+              this.openWalkinModalDrop();
+            }
+            else{
+              this.performCompleteRide(booking);
+            }
           }
         }
       ]
@@ -596,19 +610,56 @@ export class RideNoMapPage implements OnInit, ViewWillEnter {
     const formattedTime = `${hour12}:${minutes.padStart(2, '0')} ${ampm}`;
     return `${formattedDate} at ${formattedTime}`;
   }
-  createWalking() {
-    this.isWalkinModalOpen.set(true);
+  openWalkinModal() {
+    this.isWalkinModalOpenPickup.set(true);
+  }
+  openWalkinModalDrop() {
+    this.isWalkinModalOpenDrop.set(true);
   }
 
-  closeWalkinModal() {
-    this.isWalkinModalOpen.set(false);
+  closeWalkinModalPickup() {
+    this.isWalkinModalOpenPickup.set(false);
+  }
+  closeWalkinModalDrop() {
+    this.isWalkinModalOpenDrop.set(false);
+  }
+
+  onDropInput(event: any) {
+    const query = event.detail.value;
+    this.dropoffQuery = query;
+    this.dropOffForm.patchValue({ dropoffLocation: query });
+    if (!query || query.trim().length === 0) {
+      this.dropPredictions = [];
+      this.showDropPredictions = false;
+      return;
+    }
+    this.placesService.getPlacePredictions(query)
+      .then(predictions => {
+        this.dropPredictions = predictions;
+        this.showDropPredictions = predictions.length > 0 && this.activeField === 'dropoff';
+      })
+      .catch(err => {
+        console.error('Error fetching dropoff predictions', err);
+        this.showDropPredictions = false;
+      });
+  }
+  onDropFocus() {
+    this.activeField = 'dropoff';
+    if (this.dropPredictions.length > 0) {
+      this.showDropPredictions = true;
+    }
+  }
+  onDropBlur() {
+    setTimeout(() => {
+      this.showDropPredictions = false;
+      if (this.activeField === 'dropoff') this.activeField = null;
+    }, 200);
   }
 
   // ---- PICKUP AUTOCOMPLETE ----
   onPickupInput(event: any) {
     const query = event.detail.value;
     this.pickupQuery = query;
-    // Update form control (if using ngModel separately, but we use formControlName)
     this.pickupForm.patchValue({ pickupLocation: query });
     if (!query || query.trim().length === 0) {
       this.pickupPredictions = [];
@@ -637,33 +688,87 @@ export class RideNoMapPage implements OnInit, ViewWillEnter {
       if (this.activeField === 'pickup') this.activeField = null;
     }, 200);
   }
-  async selectPickupPrediction(prediction: google.maps.places.AutocompletePrediction) {
-    try {
-      const details = await this.placesService.getPlaceDetails(prediction.place_id);
-      const address = details.formatted_address || prediction.description;
-      this.pickupForm.patchValue({
-        pickupLocation: address,
-        pickupLatLon: details.geometry?.location ? 
-          `${details.geometry.location.lat()},${details.geometry.location.lng()}` : ''
-      });
-      this.pickupQuery = address;
-      this.pickupPredictions = [];
-      this.showPickupPredictions = false;
-    } catch (error) {
-      console.error('Error getting pickup details', error);
-      this.showToast('Failed to get location details', 'danger');
-    }
-  }
 
-  async useCurrentLocationForPickup() {
+async selectPickupPrediction(suggestion: google.maps.places.AutocompleteSuggestion) {
+  try {
+    if (!suggestion.placePrediction) {
+      console.warn('No place prediction found');
+      return;
+    }
+
+    // ✅ Use placePrediction.placeId
+    const placeId = suggestion.placePrediction.placeId;
+    if (!placeId) {
+      throw new Error('No place ID found');
+    }
+
+    const details = await this.placesService.getPlaceDetails(placeId);
+    
+    // ✅ Use placePrediction.text.text for the address
+    const address = details.formatted_address || suggestion.placePrediction.text.text || '';
+    
+    this.pickupForm.patchValue({
+      pickupLocation: address,
+      pickupLatLon: details.geometry?.location ?
+        `${details.geometry.location.lat()},${details.geometry.location.lng()}` : ''
+    });
+    this.pickupQuery = address;
+    this.pickupPredictions = [];
+    this.showPickupPredictions = false;
+  } catch (error) {
+    console.error('Error getting pickup details:', error);
+    this.showToast('Failed to get location details', 'danger');
+  }
+}
+
+// Same for dropoff
+async selectDropPrediction(suggestion: google.maps.places.AutocompleteSuggestion) {
+  try {
+    if (!suggestion.placePrediction) {
+      console.warn('No place prediction found');
+      return;
+    }
+
+    // Declare placeId here
+    const placeId = suggestion.placePrediction.placeId;
+    if (!placeId) {
+      throw new Error('No place ID found');
+    }
+
+    const details = await this.placesService.getPlaceDetails(placeId);
+    const address = details.formatted_address || suggestion.placePrediction.text.text || '';
+
+    this.dropOffForm.patchValue({
+      dropoffLocation: address,
+      dropLatLon: details.geometry?.location ?
+        `${details.geometry.location.lat()},${details.geometry.location.lng()}` : ''
+    });
+
+    this.dropoffQuery = address;
+    this.dropPredictions = [];
+    this.showDropPredictions = false;
+  } catch (error) {
+    console.error('Error getting dropoff details:', error);
+    this.showToast('Failed to get location details', 'danger');
+  }
+}
+ 
+  async useCurrentLocationForPickupandDropoff(type: 'pickup' | 'dropoff') {
+    console.log(`🔵 useCurrentLocationForPickupandDropoff called for: ${type}`);
     const loader = await this.loadingCtrl.create({
-      message: 'Getting your pickup location...',
+      message: `Getting your ${type} location...`,
     });
     await loader.present();
 
+    let position: Position | null = null;
+
     try {
-      const position = await this.locationService.getCurrentPosition();
+      console.log('📍 Requesting position from LocationService...');
+      position = await this.locationService.getCurrentPosition();
+      console.log('✅ Position obtained:', position);
+
       if (!position) {
+        console.warn('⚠️ Position is null');
         await loader.dismiss();
         this.showToast('Unable to get location. Please enable GPS.', 'danger');
         return;
@@ -671,32 +776,207 @@ export class RideNoMapPage implements OnInit, ViewWillEnter {
 
       const lat = position.coords.latitude;
       const lng = position.coords.longitude;
+      console.log(`📍 Coordinates: Lat=${lat}, Lng=${lng}`);
 
-      // Reverse geocode to get address
+      console.log('🌐 Reverse geocoding...');
       const result = await this.placesService.reverseGeocode(lat, lng);
+      console.log('✅ Reverse geocoding result:', result);
+
       const address = result.formatted_address || `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}`;
+      console.log(`📌 Final address: ${address}`);
 
-      // Update pickupForm
-      this.pickupForm.patchValue({
-        pickupLocation: address,
-        pickupLatLon: `${lat},${lng}`
-      });
+      if (type === 'pickup') {
+        this.pickupForm.patchValue({
+          pickupLocation: address,
+          pickupLatLon: `${lat},${lng}`
+        });
+      } else {
+        this.dropOffForm.patchValue({
+          dropoffLocation: address,
+          dropLatLon: `${lat},${lng}`
+        });
+      }
 
       await loader.dismiss();
-      this.showToast('Pickup location set', 'success');
+      this.showToast(`${type.charAt(0).toUpperCase() + type.slice(1)} location set`, 'success');
     } catch (error) {
-      await loader.dismiss();
-      console.error('Error getting pickup location:', error);
-      this.showToast('Failed to get address.', 'danger');
+      let errorMessage = 'Unknown error';
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      }
+      console.error(`❌ Error:`, errorMessage);
+
+      // Fallback: use coordinates if we have them
+      if (position) {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        const fallbackAddress = `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}`;
+        if (type === 'pickup') {
+          this.pickupForm.patchValue({
+            pickupLocation: fallbackAddress,
+            pickupLatLon: `${lat},${lng}`
+          });
+        } else {
+          this.dropOffForm.patchValue({
+            dropoffLocation: fallbackAddress,
+            dropLatLon: `${lat},${lng}`
+          });
+        }
+        await loader.dismiss();
+        this.showToast('Location set (coordinates only)', 'warning');
+      } else {
+        await loader.dismiss();
+        this.showToast(`Failed to get ${type} address: ${errorMessage}`, 'danger');
+      }
     }
   }
-   async createBooking(): Promise<void> {
-    console.log('Creating booking with data:', this.pickupForm.value, this.dropOffForm.value);
+
+  // ---- FORM SUBMISSION (unchanged) ----
+  private toBackendDate(value: unknown): string {
+    if (!value) return '';
+    if (value instanceof Date && !Number.isNaN(value.getTime())) {
+      const y = value.getFullYear();
+      const m = String(value.getMonth() + 1).padStart(2, '0');
+      const d = String(value.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+    const raw = String(value).trim();
+    if (!raw) return '';
+    const dateOnly = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (dateOnly) return raw;
+    const parsed = new Date(raw);
+    if (!Number.isNaN(parsed.getTime())) {
+      const y = parsed.getFullYear();
+      const m = String(parsed.getMonth() + 1).padStart(2, '0');
+      const d = String(parsed.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+    return raw;
+  }
+  private formatTimeForBackend(timeValue: any): string {
+    if (!timeValue) return '';
+    if (timeValue instanceof Date) {
+      const hours = timeValue.getHours().toString().padStart(2, '0');
+      const minutes = timeValue.getMinutes().toString().padStart(2, '0');
+      const seconds = timeValue.getSeconds().toString().padStart(2, '0');
+      return `${hours}:${minutes}:${seconds}`;
+    }
+    if (typeof timeValue === 'string') {
+      if (timeValue.includes('T')) {
+        const timePart = timeValue.split('T')[1]?.split('.')[0] || timeValue.split('T')[1]?.split('Z')[0] || '';
+        return timePart;
+      }
+      if (/^\d{2}:\d{2}(:\d{2})?$/.test(timeValue)) {
+        return timeValue.length === 5 ? `${timeValue}:00` : timeValue;
+      }
+      return timeValue;
+    }
+    return String(timeValue);
+  }
+
+  async createWalkinRide(): Promise<void> {
+    console.log('createWalkinRide called');
+    console.log('Form value:', this.pickupForm.value);
+    console.log('Form valid:', this.pickupForm.valid);
     if (this.pickupForm.invalid) {
+      console.log('Form is invalid');
       this.pickupForm.markAllAsTouched();
       this.showToast('Please complete the required fields.', 'warning');
       return;
     }
+    const loader = await this.loadingCtrl.create({
+      message: 'Creating booking...',
+    });
+    await loader.present();
+
+    const formValue = this.pickupForm.value;
+    const payload = {
+      pickupLocation: formValue.pickupLocation,
+      pickup_lat_lon: formValue.pickupLatLon || '',
+      bookingDate: this.toBackendDate(formValue.bookingDate),
+      bookingTime: this.formatTimeForBackend(formValue.bookingTime),
+      ride_type: formValue.rideType,
+      rickId: formValue.rickId || '',
+    };
+    try {
+      await firstValueFrom(this.bookingsService.createBooking(payload));
+      await loader.dismiss();
+      this.showToast('Booking created successfully.', 'success');
+      this.resetBookingForm();
+      this.loadPendingRides();
+      this.isWalkinModalOpenPickup.set(false);
+    } catch (error) {
+      await loader.dismiss();
+      this.showToast('Failed to create booking. Please try again.', 'danger');
+      console.error('Booking create error', error);
+    }
+  }
+
+  async updateDropoff() {
+    console.log('Mobile errors:', this.dropOffForm.get('mobileNumber')?.errors);
+    if (this.dropOffForm.invalid) {
+      this.dropOffForm.markAllAsTouched();
+      this.showToast('Please complete the required fields.', 'warning');
+      return;
+    }
+    const loader = await this.loadingCtrl.create({
+      message: 'Creating booking...',
+    });
+    await loader.present();
+
+    const formValue = this.dropOffForm.value;
+    const payload = {
+      dropoffLocation: formValue.dropoffLocation,
+      drop_lat_lon: formValue.dropLatLon || '',
+      total_charge: formValue.totalCharge,
+      guestName: formValue.guestName,
+      mobileNumber: formValue.mobileNumber,
+      rickId: formValue.rickId || '',
+      id: this.bookingIdForUpdate
+    };
+    try {
+      await firstValueFrom(this.bookingsService.updateDropoffWalkin(payload));
+      await loader.dismiss();
+      this.showToast('Booking updated successfully.', 'success');
+      this.resetDropOffForm();
+      this.loadPendingRides();
+      this.isWalkinModalOpenDrop.set(false);
+    } catch (error) {
+      await loader.dismiss();
+      this.showToast('Failed to update booking. Please try again.', 'danger');
+      console.error('Booking create error', error);
+    }
+  }
+  private resetDropOffForm(): void {
+    this.dropOffForm.reset({
+      dropoffLocation: '',
+      dropLatLon: '',
+      totalCharge: '',
+      guestName: '',
+      mobileNumber: '',
+      rideType: 'WALKIN',
+      rickId: this.authService.getStoredRick() || '',
+    });
+    this.dropoffQuery = '';
+    this.dropPredictions = [];
+    this.showDropPredictions = false;
+  }
+
+  private resetBookingForm(): void {
+    const now = new Date();
+    this.pickupForm.reset({
+      pickupLocation: '',
+      pickupLatLon: '',
+      bookingDate: now.toISOString(),
+      bookingTime: now.toTimeString().slice(0, 5),
+      rideType: 'WALKIN',
+      rickId: this.authService.getStoredRick() || '',
+    });
+    this.pickupQuery = '';
+    this.pickupPredictions = [];
+    this.showPickupPredictions = false;
   }
 
   // Toast Display Here
@@ -708,5 +988,12 @@ export class RideNoMapPage implements OnInit, ViewWillEnter {
       position: 'bottom',
     });
     await toast.present();
+  }
+  onMobileInput(event: any) {
+    let raw = event.detail.value || '';
+    // Remove all non-digit characters
+    const digitsOnly = raw.replace(/\D/g, '');
+    // Update the form control with the cleaned value
+    this.dropOffForm.patchValue({ mobileNumber: digitsOnly }, { emitEvent: false });
   }
 }

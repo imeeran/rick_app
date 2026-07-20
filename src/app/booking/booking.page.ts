@@ -1,5 +1,4 @@
 import { Component, OnInit, OnDestroy, signal, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
-import { ViewWillEnter } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
@@ -16,21 +15,18 @@ import {
   IonIcon,
   IonAccordion,
   IonAccordionGroup,
-  IonSpinner, IonButton, IonModal, IonHeader, IonTitle, IonToolbar, IonButtons, IonInput, IonDatetime, IonDatetimeButton, IonTextarea, IonRefresher, IonList, IonText, IonFooter, IonCheckbox, IonSearchbar 
+  IonSpinner 
 } from '@ionic/angular/standalone';
-import { BookingsService, Booking } from '../services/bookings.service';
+import { Booking } from '../services/bookings.service';
 import { ThemeService } from '../services/theme.service';
 import { AuthService } from '../services/auth.service';
 import { environment } from '../../environments/environment';
-import { Subscription, throwError, firstValueFrom } from 'rxjs';
+import { Subscription, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { addIcons } from 'ionicons';
 import { locationOutline, flagOutline, personOutline, timeOutline, calendarOutline, addOutline, closeOutline, locateOutline } from 'ionicons/icons';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { ToastController, LoadingController, NavController } from '@ionic/angular';
-import { Geolocation } from '@capacitor/geolocation';
-import { LocationService } from '../services/location.service';
-import { PlacesService } from '../services/places.service';
+import { ReactiveFormsModule } from '@angular/forms';
+import { ToastController } from '@ionic/angular';
 
 interface MonthGroup {
   monthKey: string;
@@ -43,7 +39,7 @@ interface MonthGroup {
   selector: 'app-booking',
   templateUrl: 'booking.page.html',
   styleUrls: ['booking.page.scss'],
-  imports: [IonSearchbar, IonFooter, IonText, IonList, IonRefresher, IonTextarea, IonDatetime, IonDatetimeButton, IonInput, IonButtons, IonToolbar, IonTitle, IonHeader, IonModal, IonButton, ReactiveFormsModule,
+  imports: [ReactiveFormsModule,
     CommonModule,
     IonContent,
     IonSegment,
@@ -58,7 +54,6 @@ interface MonthGroup {
     IonAccordion,
     IonAccordionGroup,
     IonSpinner,
-    IonCheckbox
   ],
 })
 export class BookingPage implements OnInit, OnDestroy, AfterViewInit {
@@ -80,28 +75,10 @@ export class BookingPage implements OnInit, OnDestroy, AfterViewInit {
   currentMonthKey: string = '';
   private themeSubscription?: Subscription;
   private apiUrl = environment.apiUrl;
-  isWalkinModalOpen = signal(false);
 
-  bookingForm: FormGroup;
+
   isSubmitting = false;
-  rideTypes = [
-    { value: 'TRANSFER', label: 'TRANSFER' },
-    { value: 'CHAUFFEUR', label: 'CHAUFFEUR' },
-    { value: 'WALKIN', label: 'WALKIN' },
-    { value: 'Other', label: 'Other' },
-  ];
-  paymentModes = [
-    { value: 'CASH', label: 'Cash' },
-    { value: 'CARD', label: 'Card' },
-  ];
-  vehicleOptions = [
-    { value: 'suv', label: 'SUV' },
-    { value: 'xl', label: 'XL' },
-    { value: 'vip', label: 'VIP' },
-    { value: 'vip-plus', label: 'VIP PLUS' },
-    { value: 'bmw7series', label: 'BMW 7 SERIES' },
-    { value: 'tesla', label: 'TESLA' },
-  ];
+
   selectedVehicle = signal<string>('');
 
   // ---- Location Autocomplete Properties ----
@@ -117,41 +94,15 @@ export class BookingPage implements OnInit, OnDestroy, AfterViewInit {
   rickId: string | null = null;
 
   constructor(
-    private bookingsService: BookingsService,
     private themeService: ThemeService,
     private http: HttpClient,
     private authService: AuthService,
     private route: ActivatedRoute,
     private router: Router,
-    private fb: FormBuilder,
     private toastCtrl: ToastController,
-    private loadingCtrl: LoadingController,
-    private locationService: LocationService,
-    private placesService: PlacesService
   ) {
     addIcons({ locationOutline, flagOutline, personOutline, timeOutline, calendarOutline, addOutline, closeOutline, locateOutline });
     const now = new Date();
-    this.bookingForm = this.fb.group({
-      vehicleType: ['', Validators.required],
-      pickupLocation: ['', Validators.required],
-      pickupLatLon: [''],
-      dropoffLocation: ['', Validators.required],
-      dropLatLon: [''],
-      bookingDate: [now.toISOString(), Validators.required],
-      bookingTime: [now.toTimeString().slice(0, 5), Validators.required],
-      guestName: ['', Validators.required],
-      mobileNumber: ['', [Validators.required, Validators.pattern('^[0-9]{7,15}$')]],
-      emailId: ['', [Validators.required, Validators.email]],
-      totalCharge: [null, Validators.required],
-      driverCharge: [null, Validators.required],
-      tollCharge: [null],
-      paymentMode: ['CASH', Validators.required],
-      rideType: ['TRANSFER', Validators.required],
-      hours: [null],
-      onContract: [false],
-      contractProviderName: [''],
-      specialNote: [''],
-    });
   }
 
   ngOnInit() {
@@ -383,7 +334,8 @@ export class BookingPage implements OnInit, OnDestroy, AfterViewInit {
             pickupLocation: booking.pickupLocation,
             dropoffLocation: booking.dropoffLocation,
             passengerName: booking.passengerName,
-            passengerEmail: booking.passengerEmail
+            passengerEmail: booking.passengerEmail,
+            rideType: booking.rideType
           }));
           this.filterBookings();
           this.isLoading.set(false);
@@ -527,303 +479,9 @@ export class BookingPage implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
-  createWalking() {
-    this.isWalkinModalOpen.set(true);
-  }
-
-  closeWalkinModal() {
-    this.isWalkinModalOpen.set(false);
-  }
-
-  selectVehicle(vehicleType: string): void {
-    this.selectedVehicle.set(vehicleType);
-    this.bookingForm.patchValue({ vehicleType });
-  }
-
-  // ---- PICKUP AUTOCOMPLETE ----
-  onPickupInput(event: any) {
-    const query = event.detail.value;
-    this.pickupQuery = query;
-    // Update form control (if using ngModel separately, but we use formControlName)
-    this.bookingForm.patchValue({ pickupLocation: query });
-    if (!query || query.trim().length === 0) {
-      this.pickupPredictions = [];
-      this.showPickupPredictions = false;
-      return;
-    }
-    this.placesService.getPlacePredictions(query)
-      .then(predictions => {
-        this.pickupPredictions = predictions;
-        this.showPickupPredictions = predictions.length > 0 && this.activeField === 'pickup';
-      })
-      .catch(err => {
-        console.error('Error fetching pickup predictions', err);
-        this.showPickupPredictions = false;
-      });
-  }
-
-  onPickupFocus() {
-    this.activeField = 'pickup';
-    if (this.pickupPredictions.length > 0) {
-      this.showPickupPredictions = true;
-    }
-  }
-
-  onPickupBlur() {
-    setTimeout(() => {
-      this.showPickupPredictions = false;
-      if (this.activeField === 'pickup') this.activeField = null;
-    }, 200);
-  }
-
-  async selectPickupPrediction(prediction: google.maps.places.AutocompletePrediction) {
-    try {
-      const details = await this.placesService.getPlaceDetails(prediction.place_id);
-      const address = details.formatted_address || prediction.description;
-      this.bookingForm.patchValue({
-        pickupLocation: address,
-        pickupLatLon: details.geometry?.location ? 
-          `${details.geometry.location.lat()},${details.geometry.location.lng()}` : ''
-      });
-      this.pickupQuery = address;
-      this.pickupPredictions = [];
-      this.showPickupPredictions = false;
-    } catch (error) {
-      console.error('Error getting pickup details', error);
-      this.showToast('Failed to get location details', 'danger');
-    }
-  }
-
-  // ---- DROPOFF AUTOCOMPLETE ----
-  onDropoffInput(event: any) {
-    const query = event.detail.value;
-    this.dropoffQuery = query;
-    this.bookingForm.patchValue({ dropoffLocation: query });
-    if (!query || query.trim().length === 0) {
-      this.dropoffPredictions = [];
-      this.showDropoffPredictions = false;
-      return;
-    }
-    this.placesService.getPlacePredictions(query)
-      .then(predictions => {
-        this.dropoffPredictions = predictions;
-        this.showDropoffPredictions = predictions.length > 0 && this.activeField === 'dropoff';
-      })
-      .catch(err => {
-        console.error('Error fetching dropoff predictions', err);
-        this.showDropoffPredictions = false;
-      });
-  }
-
-  onDropoffFocus() {
-    this.activeField = 'dropoff';
-    if (this.dropoffPredictions.length > 0) {
-      this.showDropoffPredictions = true;
-    }
-  }
-
-  onDropoffBlur() {
-    setTimeout(() => {
-      this.showDropoffPredictions = false;
-      if (this.activeField === 'dropoff') this.activeField = null;
-    }, 200);
-  }
-
-  async selectDropoffPrediction(prediction: google.maps.places.AutocompletePrediction) {
-    try {
-      const details = await this.placesService.getPlaceDetails(prediction.place_id);
-      const address = details.formatted_address || prediction.description;
-      this.bookingForm.patchValue({
-        dropoffLocation: address,
-        dropLatLon: details.geometry?.location ?
-          `${details.geometry.location.lat()},${details.geometry.location.lng()}` : ''
-      });
-      this.dropoffQuery = address;
-      this.dropoffPredictions = [];
-      this.showDropoffPredictions = false;
-    } catch (error) {
-      console.error('Error getting dropoff details', error);
-      this.showToast('Failed to get location details', 'danger');
-    }
-  }
-
-  // ---- USE CURRENT LOCATION (for Pickup) ----
-  async useCurrentLocation() {
-    const loader = await this.loadingCtrl.create({
-      message: 'Getting your location...',
-    });
-    await loader.present();
-
-    try {
-      const position = await this.locationService.getCurrentPosition();
-      if (!position) {
-        await loader.dismiss();
-        this.showToast('Unable to get location. Please enable GPS.', 'danger');
-        return;
-      }
-
-      const lat = position.coords.latitude;
-      const lng = position.coords.longitude;
-
-      // Reverse geocode to get address
-      const result = await this.placesService.reverseGeocode(lat, lng);
-      const address = result.formatted_address || `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}`;
-
-      this.bookingForm.patchValue({
-        pickupLocation: address,
-        pickupLatLon: `${lat},${lng}`
-      });
-      this.pickupQuery = address;
-      this.showPickupPredictions = false;
-      this.pickupPredictions = [];
-
-      await loader.dismiss();
-      this.showToast('Current location set successfully', 'success');
-    } catch (error) {
-      await loader.dismiss();
-      console.error('Error getting location or address:', error);
-      this.showToast('Failed to get address. Please try again.', 'danger');
-    }
-  }
-
   // ---- PREVENT BLUR ON CLICK ----
   preventBlur(event: MouseEvent) {
     event.preventDefault();
-  }
-
-  // ---- FORM SUBMISSION (unchanged) ----
-  private toBackendDate(value: unknown): string {
-    if (!value) return '';
-    if (value instanceof Date && !Number.isNaN(value.getTime())) {
-      const y = value.getFullYear();
-      const m = String(value.getMonth() + 1).padStart(2, '0');
-      const d = String(value.getDate()).padStart(2, '0');
-      return `${y}-${m}-${d}`;
-    }
-    const raw = String(value).trim();
-    if (!raw) return '';
-    const dateOnly = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-    if (dateOnly) return raw;
-    const parsed = new Date(raw);
-    if (!Number.isNaN(parsed.getTime())) {
-      const y = parsed.getFullYear();
-      const m = String(parsed.getMonth() + 1).padStart(2, '0');
-      const d = String(parsed.getDate()).padStart(2, '0');
-      return `${y}-${m}-${d}`;
-    }
-    return raw;
-  }
-
-  private formatTimeForBackend(timeValue: any): string {
-    if (!timeValue) return '';
-    if (timeValue instanceof Date) {
-      const hours = timeValue.getHours().toString().padStart(2, '0');
-      const minutes = timeValue.getMinutes().toString().padStart(2, '0');
-      const seconds = timeValue.getSeconds().toString().padStart(2, '0');
-      return `${hours}:${minutes}:${seconds}`;
-    }
-    if (typeof timeValue === 'string') {
-      if (timeValue.includes('T')) {
-        const timePart = timeValue.split('T')[1]?.split('.')[0] || timeValue.split('T')[1]?.split('Z')[0] || '';
-        return timePart;
-      }
-      if (/^\d{2}:\d{2}(:\d{2})?$/.test(timeValue)) {
-        return timeValue.length === 5 ? `${timeValue}:00` : timeValue;
-      }
-      return timeValue;
-    }
-    return String(timeValue);
-  }
-
-  private toNumber(value: any, defaultValue: number | undefined): number | undefined {
-    if (defaultValue === undefined && (value == null || String(value).trim() === '')) {
-      return undefined;
-    }
-    const n = Number(value);
-    return Number.isFinite(n) ? n : (defaultValue ?? 0);
-  }
-
-  async createBooking(): Promise<void> {
-    if (this.bookingForm.invalid) {
-      this.bookingForm.markAllAsTouched();
-      this.showToast('Please complete the required fields.', 'warning');
-      return;
-    }
-
-    const loader = await this.loadingCtrl.create({
-      message: 'Creating booking...',
-    });
-    await loader.present();
-
-    const formValue = this.bookingForm.value;
-    const payload = {
-      vehicleType: formValue.vehicleType,
-      pickupLocation: formValue.pickupLocation,
-      dropoffLocation: formValue.rideType === 'CHAUFFEUR' ? '' : (formValue.dropoffLocation || ''),
-      pickup_lat_lon: formValue.pickupLatLon || '',
-      drop_lat_lon: formValue.rideType === 'CHAUFFEUR' ? (formValue.pickupLatLon || '') : (formValue.dropLatLon || ''),
-      duration: '',
-      distance: '',
-      bookingDate: this.toBackendDate(formValue.bookingDate),
-      bookingTime: this.formatTimeForBackend(formValue.bookingTime),
-      guestName: formValue.guestName,
-      mobileNumber: formValue.mobileNumber,
-      emailId: formValue.emailId,
-      total_charge: this.toNumber(formValue.totalCharge, 0),
-      driverCharge: this.toNumber(formValue.driverCharge, 0),
-      tollCharge: this.toNumber(formValue.tollCharge, undefined),
-      payment_mode: formValue.paymentMode,
-      ride_type: formValue.rideType,
-      hours: formValue.rideType === 'CHAUFFEUR' ? this.toNumber(formValue.hours, 2) : undefined,
-      on_contract: formValue.onContract ?? false,
-      contract_provider_name: formValue.onContract ? (formValue.contractProviderName || '') : '',
-      specialNote: formValue.specialNote || '',
-      rickId: this.rickId || '',
-    };
-
-    try {
-      await firstValueFrom(this.bookingsService.createBooking(payload));
-      await loader.dismiss();
-      this.showToast('Booking created successfully.', 'success');
-      this.resetBookingForm();
-      this.isWalkinModalOpen.set(false);
-    } catch (error) {
-      await loader.dismiss();
-      this.showToast('Failed to create booking. Please try again.', 'danger');
-      console.error('Booking create error', error);
-    }
-  }
-
-  private resetBookingForm(): void {
-    const now = new Date();
-    this.bookingForm.reset({
-      vehicleType: '',
-      pickupLocation: '',
-      pickupLatLon: '',
-      dropoffLocation: '',
-      dropLatLon: '',
-      bookingDate: now.toISOString(),
-      bookingTime: now.toTimeString().slice(0, 5),
-      guestName: '',
-      mobileNumber: '',
-      emailId: '',
-      totalCharge: null,
-      driverCharge: null,
-      tollCharge: null,
-      paymentMode: 'CASH',
-      rideType: 'TRANSFER',
-      hours: null,
-      onContract: false,
-      contractProviderName: '',
-      specialNote: '',
-    });
-    this.selectedVehicle.set('');
-    this.pickupQuery = '';
-    this.dropoffQuery = '';
-    this.pickupPredictions = [];
-    this.dropoffPredictions = [];
-    this.showPickupPredictions = false;
-    this.showDropoffPredictions = false;
   }
 
   private async showToast(message: string, color: 'success' | 'warning' | 'danger' = 'success'): Promise<void> {
